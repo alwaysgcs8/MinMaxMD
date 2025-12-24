@@ -1,4 +1,4 @@
-const CACHE_NAME = 'minmaxmd-v2';
+const CACHE_NAME = 'minmaxmd-v5';
 
 // Resources to cache immediately
 const PRECACHE_URLS = [
@@ -50,7 +50,8 @@ self.addEventListener('fetch', (event) => {
           // Check for valid response
           if (!response || response.status !== 200 || response.type !== 'basic') {
              // If network returns 404 or error, try cache
-             return caches.match('/index.html');
+             return caches.match('/index.html')
+               .then(cached => cached || response); 
           }
           
           // Cache the fresh copy
@@ -62,7 +63,16 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           // Network failed, return cached index.html
-          return caches.match('/index.html');
+          return caches.match('/index.html').then(cachedResponse => {
+              if (cachedResponse) {
+                  return cachedResponse;
+              }
+              // If index.html isn't in cache, return a basic offline response to prevent crash
+              return new Response(
+                  '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="background:#f0f2f5;font-family:sans-serif;padding:2rem;text-align:center;"><h1>Offline</h1><p>Please check your internet connection.</p></body></html>',
+                  { headers: { 'Content-Type': 'text/html' } }
+              );
+          });
         })
     );
     return;
@@ -76,7 +86,8 @@ self.addEventListener('fetch', (event) => {
       }
 
       return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic' && response.type !== 'cors') {
+        // Check for valid response
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
 
@@ -86,6 +97,10 @@ self.addEventListener('fetch', (event) => {
         });
 
         return response;
+      }).catch(() => {
+          // If asset fetch fails, return undefined (browser handles missing image)
+          // or you could return a placeholder image here
+          return undefined;
       });
     })
   );
