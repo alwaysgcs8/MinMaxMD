@@ -4,14 +4,19 @@ import {
     getStoredTransactions, saveTransactions, 
     getStoredRecurringTransactions, saveRecurringTransactions,
     getBudgetLimits, saveBudgetLimits,
-    getStoredTheme, saveTheme
+    getStoredTheme, saveTheme,
+    saveToCloud, loadFromCloud
 } from './services/storageService';
+import { auth } from './services/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { Dashboard } from './components/Dashboard';
 import { BottomNav } from './components/BottomNav';
 import { AddTransaction } from './components/AddTransaction';
 import { Analytics } from './components/Analytics';
 import { Settings } from './components/Settings';
 import { AiAdvisor } from './components/AiAdvisor';
+import { TransactionHistory } from './components/TransactionHistory';
+import { EditTransaction } from './components/EditTransaction';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
@@ -20,6 +25,10 @@ const App: React.FC = () => {
   const [budgetLimits, setBudgetLimits] = useState<BudgetLimit[]>([]);
   const [theme, setTheme] = useState<Theme>('light');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  
+  // Auth state
+  const [user, setUser] = useState<User | null>(null);
 
   // Scroll visibility logic
   const [isNavVisible, setIsNavVisible] = useState(true);
@@ -81,6 +90,7 @@ const App: React.FC = () => {
     };
   };
 
+  // Initial Load from LocalStorage
   useEffect(() => {
     const storedTxs = getStoredTransactions();
     const storedRecurring = getStoredRecurringTransactions();
@@ -94,31 +104,86 @@ const App: React.FC = () => {
     setBudgetLimits(storedLimits);
     setTheme(storedTheme);
     
-    // Apply theme
-    if (storedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-    } else {
-        document.documentElement.classList.remove('dark');
-    }
-
     setIsLoaded(true);
   }, []);
 
+  // Auth & Cloud Sync Listener
+  useEffect(() => {
+    if (!auth) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        setUser(currentUser);
+        
+        if (currentUser && isLoaded) {
+            // User just logged in or app refreshed with active user
+            console.log("Syncing from cloud...");
+            const cloudData = await loadFromCloud(currentUser.uid);
+            
+            if (cloudData) {
+                // If cloud has data, prioritize it (simple sync strategy)
+                // In a production app, you might want more complex merge logic
+                setTransactions(cloudData.transactions || []);
+                setRecurringTransactions(cloudData.recurring || []);
+                setBudgetLimits(cloudData.limits || []);
+                console.log("Data loaded from cloud.");
+            } else {
+                // First time sync or empty cloud: Upload local data
+                console.log("Cloud empty, uploading local data...");
+                await saveToCloud(currentUser.uid, {
+                    transactions,
+                    recurring: recurringTransactions,
+                    limits: budgetLimits
+                });
+            }
+        }
+    });
+
+    return () => unsubscribe();
+  }, [isLoaded]); // Depend on isLoaded to ensure local data is ready before decision making
+
+  // Theme Logic
+  useEffect(() => {
+    const applyTheme = () => {
+      const isDark = theme === 'dark' || 
+        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    applyTheme();
+
+    if (theme === 'system') {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handler = () => applyTheme();
+        mediaQuery.addEventListener('change', handler);
+        return () => mediaQuery.removeEventListener('change', handler);
+    }
+  }, [theme]);
+
+  // Persist State (Local + Cloud)
   useEffect(() => {
     if (isLoaded) {
+      // 1. Save to LocalStorage (Always acts as offline cache)
       saveTransactions(transactions);
       saveRecurringTransactions(recurringTransactions);
       saveBudgetLimits(budgetLimits);
       saveTheme(theme);
 
-      // Apply theme
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
+      // 2. Save to Cloud (If logged in)
+      if (user) {
+         // Debounce could be added here for performance, but for MVP direct save is okay
+         saveToCloud(user.uid, {
+             transactions,
+             recurring: recurringTransactions,
+             limits: budgetLimits
+         });
       }
     }
-  }, [transactions, recurringTransactions, budgetLimits, theme, isLoaded]);
+  }, [transactions, recurringTransactions, budgetLimits, theme, isLoaded, user]);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -174,6 +239,23 @@ const App: React.FC = () => {
     setCurrentView(View.DASHBOARD);
   };
 
+  const handleUpdateTransaction = (updatedTx: Transaction) => {
+    setTransactions(prev => prev.map(t => t.id === updatedTx.id ? updatedTx : t));
+    setSelectedTransaction(null);
+    setCurrentView(View.HISTORY);
+  };
+
+  const handleDeleteTransaction = (id: string) => {
+    setTransactions(prev => prev.filter(t => t.id !== id));
+    setSelectedTransaction(null);
+    setCurrentView(View.HISTORY);
+  };
+
+  const handleSelectTransaction = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setCurrentView(View.EDIT);
+  };
+
   const renderView = () => {
     switch (currentView) {
       case View.DASHBOARD:
@@ -182,6 +264,16 @@ const App: React.FC = () => {
         return <AddTransaction onAdd={handleAddTransaction} onCancel={() => setCurrentView(View.DASHBOARD)} />;
       case View.ANALYTICS:
         return <Analytics transactions={transactions} budgetLimits={budgetLimits} onNavigate={setCurrentView} />;
+      case View.HISTORY:
+        return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={setCurrentView} />;
+      case View.EDIT:
+        if (!selectedTransaction) return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={setCurrentView} />;
+        return <EditTransaction 
+            transaction={selectedTransaction} 
+            onUpdate={handleUpdateTransaction} 
+            onDelete={handleDeleteTransaction}
+            onCancel={() => setCurrentView(View.HISTORY)} 
+        />;
       case View.AI_ADVISOR:
         return <AiAdvisor transactions={transactions} />;
       case View.SETTINGS:
@@ -210,8 +302,8 @@ const App: React.FC = () => {
         {renderView()}
       </main>
 
-      {/* Navigation */}
-      {currentView !== View.ADD && currentView !== View.SETTINGS && (
+      {/* Navigation - Hide when in ADD, SETTINGS or EDIT views */}
+      {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && (
         <BottomNav 
             currentView={currentView} 
             onViewChange={setCurrentView} 

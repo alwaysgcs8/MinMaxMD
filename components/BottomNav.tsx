@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, PieChart, Plus } from 'lucide-react';
+import { Home, PieChart, Plus, History } from 'lucide-react';
 import { View } from '../types';
 
 interface BottomNavProps {
@@ -29,13 +29,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
         isVisible ? 'translate-y-0' : 'translate-y-[200%]'
       }`}
     >
-      {/* Changed max-w-md to max-w-[20rem] to make it less wide */}
       <div className="max-w-[20rem] mx-auto pointer-events-auto">
         <div className="relative bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-glass rounded-[2rem] h-20 px-2 grid grid-cols-5 items-center">
             
             {/* Left Group */}
-            <div className="col-span-2 flex justify-evenly items-center pr-2">
+            <div className="col-span-2 flex justify-evenly items-center pr-2 gap-1">
                 <NavButton view={View.DASHBOARD} icon={Home} />
+                <NavButton view={View.HISTORY} icon={History} />
             </div>
 
             {/* Center Spacer for Add Button */}

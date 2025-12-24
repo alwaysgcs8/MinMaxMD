@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { Transaction, TransactionType, View } from '../types';
 import { CATEGORY_COLORS } from '../constants';
 import { ArrowUpRight, ArrowDownRight, Wallet, Settings as SettingsIcon } from 'lucide-react';
@@ -9,9 +9,6 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }) => {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const cardRef = useRef<HTMLDivElement>(null);
-
   const { totalBalance, monthlyIncome, monthlyExpense } = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -47,30 +44,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Calculate rotation (max 10 degrees)
-    const xRot = ((y - rect.height / 2) / rect.height) * -10;
-    const yRot = ((x - rect.width / 2) / rect.width) * 10;
-
-    setTilt({ x: xRot, y: yRot });
-  };
-
-  const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 });
-  };
-
   return (
     <div className="space-y-6 pb-32 animate-in fade-in duration-700">
       {/* Header */}
       <div className="flex justify-between items-start px-6 pt-safe-top pb-4">
         <div>
             <h1 className="text-4xl font-light text-slate-800 dark:text-white tracking-tight">MinMax<span className="font-bold text-brand-600 dark:text-cyan-400">MD</span></h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Your financial flow</p>
         </div>
         <button 
             onClick={() => onNavigate(View.SETTINGS)}
@@ -80,18 +59,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
         </button>
       </div>
 
-      {/* Parallax Liquid Card */}
-      <div 
-        className="mx-6 perspective-1000"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
+      {/* Liquid Card (Static) */}
+      <div className="mx-6">
         <div 
-            ref={cardRef}
-            className="p-1 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-800/60 dark:to-black/40 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-glass transition-transform duration-200 ease-out"
-            style={{ 
-                transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale3d(1, 1, 1)`,
-            }}
+            className="p-1 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-800/60 dark:to-black/40 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-glass"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-brand-400/20 via-purple-400/20 to-pink-400/20 dark:from-cyan-500/10 dark:via-purple-500/10 dark:to-pink-500/10 opacity-50"></div>
             {/* Gloss Line */}

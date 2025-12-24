@@ -13,20 +13,32 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onCancel 
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>(Category.FOOD);
   const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  // Set default to local today
+  const [date, setDate] = useState(() => {
+    const now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  });
+  
   const [frequency, setFrequency] = useState<RecurrenceFrequency>(RecurrenceFrequency.NONE);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !description) return;
+    if (!amount) return;
+
+    const finalCategory = type === TransactionType.INCOME ? Category.INCOME : category;
+
+    // Create date object at local noon to safely avoid timezone shifts when converting to ISO
+    const [year, month, day] = date.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day, 12, 0, 0);
 
     onAdd({
       transaction: {
         amount: parseFloat(amount),
-        description,
-        category: type === TransactionType.INCOME ? Category.INCOME : category,
+        description: description.trim() || finalCategory, // Default to category name if empty
+        category: finalCategory,
         type,
-        date: new Date(date).toISOString(),
+        date: dateObj.toISOString(),
       },
       frequency
     });
@@ -109,14 +121,15 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onCancel 
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">Description</label>
+          <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">
+            Description <span className="text-slate-400 font-normal normal-case opacity-70">(Optional)</span>
+          </label>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Coffee, Rent, etc."
+            placeholder={type === TransactionType.INCOME ? Category.INCOME : category}
             className="w-full px-6 py-4 rounded-[1.2rem] border border-white/50 bg-white/40 focus:bg-white/80 backdrop-blur-xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all"
-            required
           />
         </div>
 

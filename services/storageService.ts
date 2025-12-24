@@ -1,5 +1,7 @@
 import { Transaction, RecurringTransaction, BudgetLimit, Theme } from '../types';
 import { INITIAL_TRANSACTIONS } from '../constants';
+import { db } from './firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const STORAGE_KEY = 'budget_wise_v2_transactions';
 const RECURRING_KEY = 'budget_wise_v2_recurring';
@@ -102,4 +104,41 @@ export const importData = (jsonString: string): boolean => {
     console.error("Import failed", e);
     return false;
   }
+};
+
+// --- Cloud Sync Logic ---
+
+interface UserData {
+    transactions: Transaction[];
+    recurring: RecurringTransaction[];
+    limits: BudgetLimit[];
+    lastUpdated: string;
+}
+
+export const saveToCloud = async (uid: string, data: Partial<UserData>) => {
+    if (!db) return;
+    try {
+        const userRef = doc(db, "users", uid);
+        await setDoc(userRef, {
+            ...data,
+            lastUpdated: new Date().toISOString()
+        }, { merge: true });
+    } catch (e) {
+        console.error("Cloud save failed:", e);
+    }
+};
+
+export const loadFromCloud = async (uid: string): Promise<UserData | null> => {
+    if (!db) return null;
+    try {
+        const userRef = doc(db, "users", uid);
+        const docSnap = await getDoc(userRef);
+        
+        if (docSnap.exists()) {
+            return docSnap.data() as UserData;
+        }
+    } catch (e) {
+        console.error("Cloud load failed:", e);
+    }
+    return null;
 };

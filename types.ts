@@ -58,7 +58,9 @@ export enum View {
   ADD = 'ADD',
   ANALYTICS = 'ANALYTICS',
   SETTINGS = 'SETTINGS',
-  AI_ADVISOR = 'AI_ADVISOR'
+  AI_ADVISOR = 'AI_ADVISOR',
+  HISTORY = 'HISTORY',
+  EDIT = 'EDIT'
 }
 
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'system';
