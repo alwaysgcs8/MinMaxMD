@@ -1,19 +1,11 @@
+
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE'
 }
 
-export enum Category {
-  FOOD = 'Food',
-  TRANSPORT = 'Transport',
-  HOUSING = 'Housing',
-  UTILITIES = 'Utilities',
-  ENTERTAINMENT = 'Entertainment',
-  SHOPPING = 'Shopping',
-  HEALTH = 'Health',
-  INCOME = 'Income',
-  OTHER = 'Other'
-}
+// Keeping for legacy reference or defaults, but interfaces now use string
+export const DEFAULT_CATEGORY_NAME = 'Food';
 
 export enum RecurrenceFrequency {
   NONE = 'None',
@@ -26,7 +18,7 @@ export enum RecurrenceFrequency {
 export interface Transaction {
   id: string;
   amount: number;
-  category: Category;
+  category: string;
   description: string;
   date: string; // ISO Date string
   type: TransactionType;
@@ -35,7 +27,7 @@ export interface Transaction {
 export interface RecurringTransaction {
   id: string;
   amount: number;
-  category: Category;
+  category: string;
   description: string;
   type: TransactionType;
   frequency: RecurrenceFrequency;
@@ -49,8 +41,14 @@ export interface BudgetState {
 }
 
 export interface BudgetLimit {
-  category: Category;
+  category: string;
   limit: number;
+}
+
+export interface OverallBudget {
+  daily: number;
+  monthly: number;
+  yearly: number;
 }
 
 export enum View {
@@ -60,7 +58,16 @@ export enum View {
   SETTINGS = 'SETTINGS',
   AI_ADVISOR = 'AI_ADVISOR',
   HISTORY = 'HISTORY',
-  EDIT = 'EDIT'
+  EDIT = 'EDIT',
+  BUDGET = 'BUDGET'
+}
+
+export enum AnalyticsWidgetType {
+  PROJECTIONS = 'PROJECTIONS',
+  SPENDING_PIE = 'SPENDING_PIE',
+  BUDGET_LIMITS = 'BUDGET_LIMITS',
+  INCOME_VS_EXPENSE = 'INCOME_VS_EXPENSE',
+  EXPENSE_TREND = 'EXPENSE_TREND'
 }
 
 export type Theme = 'light' | 'dark' | 'system';

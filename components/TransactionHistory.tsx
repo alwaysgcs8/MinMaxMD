@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, TransactionType, View } from '../types';
-import { CATEGORY_COLORS } from '../constants';
+import { getCategoryColor } from '../constants';
 import { Search, Filter, Settings as SettingsIcon, Calendar, DollarSign, ArrowDown } from 'lucide-react';
 
 interface TransactionHistoryProps {
@@ -45,8 +45,6 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
   }, [transactions, searchTerm, sortKey, sortDirection]);
 
   const groupedTransactions = useMemo(() => {
-    // If sorting by amount, we probably want a flat list to see top spenders clearly
-    // instead of breaking them up by month which might confuse the order visually.
     if (sortKey === 'amount') {
         return { 'All Transactions': filteredTransactions };
     }
@@ -86,7 +84,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
                 placeholder="Search transactions..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 outline-none transition-all dark:text-white placeholder:text-slate-400"
+                className="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
         </div>
 
@@ -147,7 +145,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
                         >
                             <div 
                                 className="w-12 h-12 rounded-[1rem] flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md"
-                                style={{ backgroundColor: CATEGORY_COLORS[t.category], opacity: 0.9 }}
+                                style={{ backgroundColor: getCategoryColor(t.category), opacity: 0.9 }}
                             >
                                 {t.category[0]}
                             </div>

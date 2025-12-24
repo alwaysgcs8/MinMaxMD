@@ -1,23 +1,24 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Category, BudgetLimit, Theme } from '../types';
-import { Button } from './Button';
-import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Cloud, LogOut, Check, Info, WifiOff, Save } from 'lucide-react';
+import { Theme } from '../types';
+import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Cloud, LogOut, Check, WifiOff, Save, Plus, X, Tag } from 'lucide-react';
 import { exportData, importData } from '../services/storageService';
 import { signInWithGoogle, logout, auth } from '../services/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { getCategoryColor } from '../constants';
 
 interface SettingsProps {
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
-  budgetLimits: BudgetLimit[];
-  onSaveLimits: (limits: BudgetLimit[]) => void;
   onBack: () => void;
+  categories: string[];
+  onUpdateCategories: (categories: string[]) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, budgetLimits, onSaveLimits, onBack }) => {
+export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack, categories, onUpdateCategories }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
 
   useEffect(() => {
     if (!auth) return;
@@ -42,6 +43,22 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, budget
 
   const handleLogout = async () => {
     await logout();
+  };
+
+  const handleAddCategory = () => {
+    if (!newCategory.trim()) return;
+    if (categories.includes(newCategory.trim())) {
+        alert("Category already exists");
+        return;
+    }
+    onUpdateCategories([...categories, newCategory.trim()]);
+    setNewCategory('');
+  };
+
+  const handleDeleteCategory = (cat: string) => {
+    if (confirm(`Remove "${cat}" from list? Existing transactions will keep this category.`)) {
+        onUpdateCategories(categories.filter(c => c !== cat));
+    }
   };
 
   const handleExport = () => {
@@ -73,27 +90,6 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, budget
     }
   };
 
-  const handleLimitChange = (category: Category, value: string) => {
-    const numValue = parseFloat(value);
-    const newLimits = [...budgetLimits];
-    const index = newLimits.findIndex(l => l.category === category);
-    
-    if (index >= 0) {
-        if (!value) {
-             newLimits.splice(index, 1);
-        } else {
-             newLimits[index].limit = numValue;
-        }
-    } else if (value) {
-        newLimits.push({ category, limit: numValue });
-    }
-    onSaveLimits(newLimits);
-  };
-
-  const getLimit = (category: Category) => {
-    return budgetLimits.find(l => l.category === category)?.limit || '';
-  };
-
   return (
     <div className="pb-32 animate-in fade-in duration-500 space-y-8">
       <header className="px-6 pt-safe-top pb-4 flex items-center gap-4">
@@ -109,6 +105,68 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, budget
         </div>
       </header>
       
+      {/* Categories */}
+      <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+            <Tag size={20} className="text-brand-500" />
+            Edit Categories
+        </h3>
+        
+        <div className="flex flex-wrap gap-2 mb-6">
+            {categories.map(cat => (
+                <div key={cat} className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/40 dark:border-white/10 shadow-sm">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getCategoryColor(cat) }}></div>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{cat}</span>
+                    <button onClick={() => handleDeleteCategory(cat)} className="ml-1 text-slate-400 hover:text-red-500">
+                        <X size={14} />
+                    </button>
+                </div>
+            ))}
+        </div>
+
+        <div className="flex gap-2">
+            <input 
+                type="text" 
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="New Category Name"
+                className="flex-1 px-4 py-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-xl border border-white/40 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm"
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+            />
+            <button 
+                onClick={handleAddCategory}
+                className="p-3 bg-brand-500 text-white rounded-xl shadow-lg shadow-brand-500/30 hover:bg-brand-600 transition-colors"
+            >
+                <Plus size={20} />
+            </button>
+        </div>
+      </div>
+
+      {/* Theme */}
+      <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Appearance</h3>
+        <div className="flex bg-white/50 dark:bg-black/20 p-1.5 rounded-2xl border border-white/20">
+            <button
+                onClick={() => onThemeChange('light')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${theme === 'light' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+            >
+                <Sun size={18} /> Light
+            </button>
+            <button
+                onClick={() => onThemeChange('system')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${theme === 'system' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+            >
+                <Monitor size={18} /> System
+            </button>
+            <button
+                onClick={() => onThemeChange('dark')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${theme === 'dark' ? 'bg-slate-800 text-cyan-400 shadow-sm shadow-cyan-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+            >
+                <Moon size={18} /> Night
+            </button>
+        </div>
+      </div>
+
       {/* Cloud Sync Account */}
       <div className="mx-6 p-6 bg-gradient-to-br from-blue-500 to-brand-600 dark:from-blue-900 dark:to-slate-900 rounded-[2rem] shadow-lg text-white">
         <div className="flex items-center gap-3 mb-4">
@@ -188,31 +246,6 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, budget
         )}
       </div>
 
-      {/* Theme */}
-      <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
-        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Appearance</h3>
-        <div className="flex bg-white/50 dark:bg-black/20 p-1.5 rounded-2xl border border-white/20">
-            <button
-                onClick={() => onThemeChange('light')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${theme === 'light' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-            >
-                <Sun size={18} /> Light
-            </button>
-            <button
-                onClick={() => onThemeChange('system')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${theme === 'system' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-            >
-                <Monitor size={18} /> System
-            </button>
-            <button
-                onClick={() => onThemeChange('dark')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${theme === 'dark' ? 'bg-slate-800 text-cyan-400 shadow-sm shadow-cyan-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-            >
-                <Moon size={18} /> Night
-            </button>
-        </div>
-      </div>
-
       {/* Data */}
       <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Data Management</h3>
@@ -241,32 +274,6 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, budget
                 accept=".json" 
                 className="hidden" 
             />
-        </div>
-      </div>
-
-      {/* Budget Limits */}
-      <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
-        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
-            Monthly Limits <span className="text-xs font-normal text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-white/5 px-2 py-0.5 rounded-full">Optional</span>
-        </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Set spending goals for each category.</p>
-        
-        <div className="space-y-4">
-            {Object.values(Category).filter(c => c !== Category.INCOME).map((cat) => (
-                <div key={cat} className="flex items-center gap-4">
-                    <label className="w-24 text-sm font-semibold text-slate-600 dark:text-slate-300">{cat}</label>
-                    <div className="flex-1 relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <input
-                            type="number"
-                            placeholder="No limit"
-                            value={getLimit(cat)}
-                            onChange={(e) => handleLimitChange(cat, e.target.value)}
-                            className="w-full pl-7 pr-4 py-2 text-sm rounded-xl bg-white/50 dark:bg-black/20 border border-white/30 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 outline-none transition-all dark:text-white"
-                        />
-                    </div>
-                </div>
-            ))}
         </div>
       </div>
     </div>

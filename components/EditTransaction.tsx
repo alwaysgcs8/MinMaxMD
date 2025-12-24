@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
-import { Category, Transaction, TransactionType } from '../types';
+import { Transaction, TransactionType } from '../types';
 import { Button } from './Button';
-import { X, Trash2, Check, ArrowLeft } from 'lucide-react';
+import { Trash2, Check, ArrowLeft } from 'lucide-react';
 
 interface EditTransactionProps {
   transaction: Transaction;
+  categories: string[];
   onUpdate: (updated: Transaction) => void;
   onDelete: (id: string) => void;
   onCancel: () => void;
 }
 
-export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, onUpdate, onDelete, onCancel }) => {
+export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, categories, onUpdate, onDelete, onCancel }) => {
   const [amount, setAmount] = useState(transaction.amount.toString());
   const [description, setDescription] = useState(transaction.description);
-  const [category, setCategory] = useState<Category>(transaction.category);
+  const [category, setCategory] = useState<string>(transaction.category);
   const [type, setType] = useState<TransactionType>(transaction.type);
   const [date, setDate] = useState(transaction.date.split('T')[0]);
 
@@ -25,7 +26,7 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, o
       ...transaction,
       amount: parseFloat(amount),
       description,
-      category: type === TransactionType.INCOME ? Category.INCOME : category,
+      category: type === TransactionType.INCOME ? 'Income' : category,
       type,
       date: new Date(date).toISOString(),
     });
@@ -38,23 +39,23 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, o
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white/80 backdrop-blur-3xl animate-in slide-in-from-right duration-300 pt-safe-top">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl animate-in slide-in-from-right duration-300 pt-safe-top">
       <div className="flex justify-between items-center p-6">
-        <button onClick={onCancel} className="p-2 -ml-2 rounded-full hover:bg-slate-100/50 transition-colors text-slate-600 dark:text-slate-300">
+        <button onClick={onCancel} className="p-2 -ml-2 rounded-full hover:bg-slate-100/50 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-slate-300">
             <ArrowLeft size={24} />
         </button>
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Transaction</h2>
-        <div className="w-10"></div> {/* Spacer for center alignment */}
+        <div className="w-10"></div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-8 pb-10 space-y-8">
         {/* Type Toggle */}
-        <div className="bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-[1.2rem] flex backdrop-blur-sm">
+        <div className="bg-slate-200/50 dark:bg-black/30 p-1.5 rounded-[1.2rem] flex backdrop-blur-sm">
           <button
             type="button"
             onClick={() => setType(TransactionType.EXPENSE)}
             className={`flex-1 py-3 text-sm font-bold rounded-2xl transition-all duration-300 ${
-              type === TransactionType.EXPENSE ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+              type === TransactionType.EXPENSE ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
             Expense
@@ -63,10 +64,10 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, o
             type="button"
             onClick={() => {
               setType(TransactionType.INCOME);
-              setCategory(Category.INCOME);
+              setCategory('Income');
             }}
             className={`flex-1 py-3 text-sm font-bold rounded-2xl transition-all duration-300 ${
-              type === TransactionType.INCOME ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+              type === TransactionType.INCOME ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
             Income
@@ -84,7 +85,7 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, o
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-12 pr-6 py-6 text-4xl font-bold rounded-[1.5rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-black/20 focus:bg-white/80 dark:focus:bg-black/40 backdrop-blur-xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all placeholder:text-slate-300 text-slate-800 dark:text-white shadow-sm"
+              className="w-full pl-12 pr-6 py-6 text-4xl font-bold rounded-[1.5rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-slate-800/50 focus:bg-white/80 dark:focus:bg-slate-800 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 text-slate-800 dark:text-white shadow-sm"
               required
             />
           </div>
@@ -94,21 +95,30 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, o
         {type === TransactionType.EXPENSE && (
           <div>
             <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Category</label>
-            <div className="grid grid-cols-3 gap-3">
-              {Object.values(Category).filter(c => c !== Category.INCOME).map((cat) => (
+            <div className="flex flex-wrap gap-3">
+              {categories.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`py-3 px-2 text-xs font-bold rounded-2xl border transition-all duration-200 ${
+                  className={`py-3 px-4 text-xs font-bold rounded-2xl border transition-all duration-200 ${
                     category === cat
                       ? 'bg-brand-500 text-white border-brand-600 shadow-lg shadow-brand-500/30 transform scale-105'
-                      : 'bg-white/40 dark:bg-white/5 border-white/60 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-white/10'
+                      : 'bg-white/40 dark:bg-slate-800/40 border-white/60 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   {cat}
                 </button>
               ))}
+              {/* Ensure current category is shown even if deleted from settings list */}
+              {!categories.includes(category) && category !== 'Income' && (
+                  <button
+                  type="button"
+                  className="py-3 px-4 text-xs font-bold rounded-2xl border bg-brand-500 text-white border-brand-600 opacity-75"
+                >
+                  {category} (Archived)
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -121,7 +131,7 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, o
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Coffee, Rent, etc."
-            className="w-full px-6 py-4 rounded-[1.2rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-black/20 focus:bg-white/80 dark:focus:bg-black/40 backdrop-blur-xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all dark:text-white"
+            className="w-full px-6 py-4 rounded-[1.2rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-slate-800/50 focus:bg-white/80 dark:focus:bg-slate-800 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
             required
           />
         </div>
@@ -133,7 +143,7 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, o
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-4 py-4 rounded-[1.2rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-black/20 focus:bg-white/80 dark:focus:bg-black/40 backdrop-blur-xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all dark:text-white"
+            className="w-full px-4 py-4 rounded-[1.2rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-slate-800/50 focus:bg-white/80 dark:focus:bg-slate-800 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all text-slate-800 dark:text-white"
             required
           />
         </div>

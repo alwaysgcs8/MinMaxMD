@@ -64,9 +64,21 @@
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
       
+      html {
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+      }
+
       body {
         font-family: 'Outfit', sans-serif;
         transition: background-color 0.5s ease;
+        position: fixed;
+        inset: 0;
+        height: 100dvh;
+        width: 100vw;
+        overflow: hidden;
+        overscroll-behavior: none;
       }
       
       .no-scrollbar::-webkit-scrollbar {
@@ -90,6 +102,7 @@
                     radial-gradient(circle at 0% 100%, rgba(240, 253, 244, 0.8), rgba(240, 253, 244, 0) 50%);
         background-color: #f0f2f5;
         background-attachment: fixed;
+        background-size: cover;
       }
 
       /* Dark Mode Liquid Background */
@@ -99,6 +112,7 @@
                     radial-gradient(circle at 0% 100%, rgba(2, 44, 34, 0.3), rgba(2, 44, 34, 0) 50%);
         background-color: #020617;
         background-attachment: fixed;
+        background-size: cover;
       }
 
       .perspective-1000 {
@@ -124,7 +138,7 @@
 }
 </script>
 </head>
-  <body class="liquid-bg h-[100dvh] w-full overflow-hidden text-slate-900 dark:text-slate-100 selection:bg-brand-500/30">
+  <body class="liquid-bg text-slate-900 dark:text-slate-100 selection:bg-brand-500/30">
     <div id="root" class="h-full w-full"></div>
     <script type="module" src="/index.tsx"></script>
     <script>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Transaction, RecurrenceFrequency, RecurringTransaction, BudgetLimit, Theme } from './types';
+import { View, Transaction, RecurrenceFrequency, RecurringTransaction, BudgetLimit, Theme, OverallBudget } from './types';
 import { 
     getStoredTransactions, saveTransactions, 
     getStoredRecurringTransactions, saveRecurringTransactions,
     getBudgetLimits, saveBudgetLimits,
+    getOverallBudget, saveOverallBudget,
     getStoredTheme, saveTheme,
+    getStoredCategories, saveStoredCategories,
     saveToCloud, loadFromCloud
 } from './services/storageService';
 import { auth } from './services/firebase';
@@ -17,12 +19,15 @@ import { Settings } from './components/Settings';
 import { AiAdvisor } from './components/AiAdvisor';
 import { TransactionHistory } from './components/TransactionHistory';
 import { EditTransaction } from './components/EditTransaction';
+import { Budget } from './components/Budget';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([]);
   const [budgetLimits, setBudgetLimits] = useState<BudgetLimit[]>([]);
+  const [overallBudget, setOverallBudget] = useState<OverallBudget>({ daily: 0, monthly: 0, yearly: 0 });
+  const [categories, setCategories] = useState<string[]>([]);
   const [theme, setTheme] = useState<Theme>('light');
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -93,20 +98,19 @@ const App: React.FC = () => {
   // Initial Load from LocalStorage
   useEffect(() => {
     const initApp = async () => {
-        // 1. Request Persistent Storage to prevent data loss on mobile
         if (navigator.storage && navigator.storage.persist) {
             try {
-                const isPersisted = await navigator.storage.persist();
-                console.log(`Storage Persistence Granted: ${isPersisted}`);
+                await navigator.storage.persist();
             } catch (e) {
                 console.warn("Could not request storage persistence", e);
             }
         }
 
-        // 2. Load Data
         const storedTxs = getStoredTransactions();
         const storedRecurring = getStoredRecurringTransactions();
         const storedLimits = getBudgetLimits();
+        const storedOverall = getOverallBudget();
+        const storedCategories = getStoredCategories();
         const storedTheme = getStoredTheme();
 
         const result = processRecurringTransactions(storedTxs, storedRecurring);
@@ -114,6 +118,8 @@ const App: React.FC = () => {
         setTransactions(result.newTxs);
         setRecurringTransactions(result.updatedRecurring);
         setBudgetLimits(storedLimits);
+        setOverallBudget(storedOverall);
+        setCategories(storedCategories);
         setTheme(storedTheme);
         
         setIsLoaded(true);
@@ -130,31 +136,31 @@ const App: React.FC = () => {
         setUser(currentUser);
         
         if (currentUser && isLoaded) {
-            // User just logged in or app refreshed with active user
             console.log("Syncing from cloud...");
             const cloudData = await loadFromCloud(currentUser.uid);
             
             if (cloudData) {
-                // If cloud has data, prioritize it (simple sync strategy)
-                // In a production app, you might want more complex merge logic
                 setTransactions(cloudData.transactions || []);
                 setRecurringTransactions(cloudData.recurring || []);
                 setBudgetLimits(cloudData.limits || []);
+                if (cloudData.overallBudget) setOverallBudget(cloudData.overallBudget);
+                if (cloudData.categories) setCategories(cloudData.categories);
                 console.log("Data loaded from cloud.");
             } else {
-                // First time sync or empty cloud: Upload local data
                 console.log("Cloud empty, uploading local data...");
                 await saveToCloud(currentUser.uid, {
                     transactions,
                     recurring: recurringTransactions,
-                    limits: budgetLimits
+                    limits: budgetLimits,
+                    overallBudget,
+                    categories
                 });
             }
         }
     });
 
     return () => unsubscribe();
-  }, [isLoaded]); // Depend on isLoaded to ensure local data is ready before decision making
+  }, [isLoaded]);
 
   // Theme Logic
   useEffect(() => {
@@ -182,37 +188,33 @@ const App: React.FC = () => {
   // Persist State (Local + Cloud)
   useEffect(() => {
     if (isLoaded) {
-      // 1. Save to LocalStorage (Always acts as offline cache)
       saveTransactions(transactions);
       saveRecurringTransactions(recurringTransactions);
       saveBudgetLimits(budgetLimits);
+      saveOverallBudget(overallBudget);
+      saveStoredCategories(categories);
       saveTheme(theme);
 
-      // 2. Save to Cloud (If logged in)
       if (user) {
-         // Debounce could be added here for performance, but for MVP direct save is okay
          saveToCloud(user.uid, {
              transactions,
              recurring: recurringTransactions,
-             limits: budgetLimits
+             limits: budgetLimits,
+             overallBudget,
+             categories
          });
       }
     }
-  }, [transactions, recurringTransactions, budgetLimits, theme, isLoaded, user]);
+  }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded, user]);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
         const currentScrollY = scrollContainerRef.current.scrollTop;
-        
-        // Show if scrolling up or at the very top
         if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
             setIsNavVisible(true);
-        } 
-        // Hide if scrolling down and not at top
-        else if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        } else if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
             setIsNavVisible(false);
         }
-        
         lastScrollY.current = currentScrollY;
     }
   };
@@ -276,7 +278,7 @@ const App: React.FC = () => {
       case View.DASHBOARD:
         return <Dashboard transactions={transactions} onNavigate={setCurrentView} />;
       case View.ADD:
-        return <AddTransaction onAdd={handleAddTransaction} onCancel={() => setCurrentView(View.DASHBOARD)} />;
+        return <AddTransaction categories={categories} onAdd={handleAddTransaction} onCancel={() => setCurrentView(View.DASHBOARD)} />;
       case View.ANALYTICS:
         return <Analytics transactions={transactions} budgetLimits={budgetLimits} onNavigate={setCurrentView} />;
       case View.HISTORY:
@@ -285,9 +287,19 @@ const App: React.FC = () => {
         if (!selectedTransaction) return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={setCurrentView} />;
         return <EditTransaction 
             transaction={selectedTransaction} 
+            categories={categories}
             onUpdate={handleUpdateTransaction} 
             onDelete={handleDeleteTransaction}
             onCancel={() => setCurrentView(View.HISTORY)} 
+        />;
+      case View.BUDGET:
+        return <Budget 
+            overallBudget={overallBudget}
+            categoryLimits={budgetLimits}
+            categories={categories}
+            onSaveOverall={setOverallBudget}
+            onSaveCategoryLimits={setBudgetLimits}
+            onNavigate={setCurrentView}
         />;
       case View.AI_ADVISOR:
         return <AiAdvisor transactions={transactions} />;
@@ -295,9 +307,9 @@ const App: React.FC = () => {
         return <Settings 
             theme={theme} 
             onThemeChange={setTheme} 
-            budgetLimits={budgetLimits}
-            onSaveLimits={setBudgetLimits}
             onBack={() => setCurrentView(View.DASHBOARD)}
+            categories={categories}
+            onUpdateCategories={setCategories}
         />;
       default:
         return <Dashboard transactions={transactions} onNavigate={setCurrentView} />;
@@ -308,7 +320,7 @@ const App: React.FC = () => {
 
   return (
     <div className="h-full w-full relative flex flex-col bg-transparent">
-      {/* Content Area - Added Ref and onScroll handler */}
+      {/* Content Area */}
       <main 
         ref={scrollContainerRef}
         onScroll={handleScroll}
@@ -317,7 +329,7 @@ const App: React.FC = () => {
         {renderView()}
       </main>
 
-      {/* Navigation - Hide when in ADD, SETTINGS or EDIT views */}
+      {/* Navigation */}
       {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && (
         <BottomNav 
             currentView={currentView} 

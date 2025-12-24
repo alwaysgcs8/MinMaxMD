@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
-import { Transaction, TransactionType, Category, BudgetLimit, View } from '../types';
-import { CATEGORY_COLORS } from '../constants';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { Calendar, TrendingUp, AlertTriangle, Settings as SettingsIcon } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Transaction, TransactionType, BudgetLimit, View, AnalyticsWidgetType } from '../types';
+import { getCategoryColor } from '../constants';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LineChart, Line, AreaChart, Area } from 'recharts';
+import { Calendar, TrendingUp, AlertTriangle, Settings as SettingsIcon, Layout, Plus, X, GripHorizontal, Check } from 'lucide-react';
+import { getStoredWidgets, saveStoredWidgets } from '../services/storageService';
 
 interface AnalyticsProps {
   transactions: Transaction[];
@@ -11,6 +12,26 @@ interface AnalyticsProps {
 }
 
 export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits = [], onNavigate }) => {
+  const [activeWidgets, setActiveWidgets] = useState<AnalyticsWidgetType[]>([]);
+  const [isCustomizing, setIsCustomizing] = useState(false);
+  const [trendTimeframe, setTrendTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('day');
+
+  useEffect(() => {
+    const loaded = getStoredWidgets();
+    setActiveWidgets(loaded);
+  }, []);
+
+  const toggleWidget = (type: AnalyticsWidgetType) => {
+    const newWidgets = activeWidgets.includes(type)
+        ? activeWidgets.filter(w => w !== type)
+        : [...activeWidgets, type];
+    
+    setActiveWidgets(newWidgets);
+    saveStoredWidgets(newWidgets);
+  };
+
+  // --- DATA PROCESSING HOOKS ---
+
   const categoryData = useMemo(() => {
     const expenses = transactions.filter(t => t.type === TransactionType.EXPENSE);
     const summary: Record<string, number> = {};
@@ -23,7 +44,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
       .sort((a, b) => b.value - a.value);
   }, [transactions]);
 
-  // Merge limits with actual spending
   const budgetStatus = useMemo(() => {
     if (!budgetLimits.length) return [];
     
@@ -114,27 +134,115 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
     };
   }, [transactions]);
 
+  const trendData = useMemo(() => {
+    const data: Record<string, { date: string; amount: number; displayDate: string }> = {};
+    const now = new Date();
+    
+    // Helper to get consistent date key (midnight)
+    const toDateKey = (d: Date) => {
+        const n = new Date(d);
+        n.setHours(0,0,0,0);
+        return n.toISOString().split('T')[0];
+    };
+
+    if (trendTimeframe === 'day') {
+        // Last 30 days
+        for(let i=29; i>=0; i--) {
+            const d = new Date();
+            d.setDate(now.getDate() - i);
+            const key = toDateKey(d);
+            data[key] = {
+                date: key,
+                displayDate: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                amount: 0
+            };
+        }
+    } else if (trendTimeframe === 'week') {
+        // Last 12 weeks
+        const currentDay = now.getDay();
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - currentDay);
+        
+        for(let i=11; i>=0; i--) {
+            const d = new Date(startOfWeek);
+            d.setDate(d.getDate() - (i * 7));
+            const key = toDateKey(d);
+            data[key] = {
+                date: key,
+                displayDate: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                amount: 0
+            };
+        }
+    } else if (trendTimeframe === 'month') {
+        // Last 12 months
+        for(let i=11; i>=0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${d.getMonth()}`;
+            data[key] = {
+                date: key,
+                displayDate: d.toLocaleDateString(undefined, { month: 'short', year: '2-digit' }),
+                amount: 0
+            };
+        }
+    } else if (trendTimeframe === 'year') {
+        // Last 5 years
+        for(let i=4; i>=0; i--) {
+            const d = new Date(now.getFullYear() - i, 0, 1);
+            const key = `${d.getFullYear()}`;
+            data[key] = {
+                date: key,
+                displayDate: key,
+                amount: 0
+            };
+        }
+    }
+
+    transactions.forEach(t => {
+        if(t.type === TransactionType.EXPENSE) {
+            const d = new Date(t.date);
+            let key = '';
+
+            if (trendTimeframe === 'day') {
+                key = toDateKey(d);
+            } else if (trendTimeframe === 'week') {
+                const day = d.getDay();
+                const start = new Date(d);
+                start.setDate(d.getDate() - day);
+                key = toDateKey(start);
+            } else if (trendTimeframe === 'month') {
+                key = `${d.getFullYear()}-${d.getMonth()}`;
+            } else if (trendTimeframe === 'year') {
+                key = `${d.getFullYear()}`;
+            }
+
+            if(data[key]) {
+                data[key].amount += t.amount;
+            }
+        }
+    });
+
+    return Object.values(data);
+  }, [transactions, trendTimeframe]);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
   };
 
-  return (
-    <div className="pb-32 space-y-8 animate-in fade-in duration-700">
-      <div className="flex justify-between items-start px-6 pt-safe-top pb-4">
-        <div>
-            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>
-        </div>
-        <button 
-            onClick={() => onNavigate(View.SETTINGS)}
-            className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300"
-        >
-            <SettingsIcon size={22} />
-        </button>
-      </div>
+  const getAxisInterval = () => {
+    // Interval = number of ticks to skip between labels
+    switch (trendTimeframe) {
+        case 'day': return 5; // 30 items -> show ~6 labels
+        case 'week': return 1; // 12 items -> show 6 labels
+        case 'month': return 1; // 12 items -> show 6 labels
+        case 'year': return 0; // 5 items -> show 5 labels
+        default: return 0;
+    }
+  };
 
-      {/* Projections */}
-      <div className="mx-6 grid grid-cols-2 gap-4">
+  // --- RENDER FUNCTIONS FOR WIDGETS ---
+
+  const renderProjections = () => (
+      <div className="grid grid-cols-2 gap-4">
         <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-5 rounded-[1.8rem] border border-white/50 dark:border-white/10 shadow-glass relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
              <div className="absolute -right-4 -top-4 p-3 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
                 <Calendar size={80} className="text-brand-600 dark:text-cyan-400" />
@@ -175,11 +283,12 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
              </p>
         </div>
       </div>
+  );
 
-      {/* Budget Limits */}
-      {budgetStatus.length > 0 && (
-          <div className="mx-6 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Budget Limits</h3>
+  const renderBudgetLimits = () => (
+      <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Budget Limits</h3>
+        {budgetStatus.length > 0 ? (
             <div className="space-y-4">
                 {budgetStatus.map((status) => {
                     const isOverLimit = status.spent > status.limit;
@@ -207,11 +316,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                     );
                 })}
             </div>
-          </div>
-      )}
+        ) : (
+            <p className="text-slate-400 text-sm text-center py-4">No budget limits set. Go to Budget to add some.</p>
+        )}
+      </div>
+  );
 
-      {/* Expense Breakdown */}
-      <div className="mx-6 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+  const renderSpendingPie = () => (
+      <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Spending Breakdown</h3>
         <div className="h-64 w-full">
             {categoryData.length > 0 ? (
@@ -227,7 +339,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                         stroke="none"
                     >
                         {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.name as Category] || '#cbd5e1'} />
+                        <Cell key={`cell-${index}`} fill={getCategoryColor(entry.name) || '#cbd5e1'} />
                         ))}
                     </Pie>
                     <Tooltip 
@@ -246,16 +358,17 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
         <div className="grid grid-cols-2 gap-3 mt-4">
             {categoryData.slice(0, 4).map(item => (
                 <div key={item.name} className="flex items-center gap-2 text-sm bg-white/30 dark:bg-white/5 p-2 rounded-xl border border-white/20 dark:border-white/5">
-                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: CATEGORY_COLORS[item.name as Category] }}></div>
+                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: getCategoryColor(item.name) }}></div>
                     <span className="text-slate-600 dark:text-slate-300 truncate flex-1 font-medium">{item.name}</span>
                     <span className="font-bold text-slate-800 dark:text-white">${item.value.toFixed(0)}</span>
                 </div>
             ))}
         </div>
       </div>
+  );
 
-      {/* Monthly Trend */}
-      <div className="mx-6 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+  const renderIncomeVsExpense = () => (
+      <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Income vs Expense</h3>
         <div className="h-64 w-full text-xs">
             <ResponsiveContainer width="100%" height="100%">
@@ -274,6 +387,148 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
             </ResponsiveContainer>
         </div>
       </div>
+  );
+
+  const renderExpenseTrend = () => (
+      <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Expense Trend</h3>
+        
+        {/* Timeframe Toggle */}
+        <div className="flex bg-slate-100 dark:bg-slate-700/50 p-1 rounded-xl mb-4">
+            {(['day', 'week', 'month', 'year'] as const).map((tf) => (
+                <button
+                    key={tf}
+                    onClick={() => setTrendTimeframe(tf)}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        trendTimeframe === tf 
+                        ? 'bg-white dark:bg-slate-600 text-brand-600 dark:text-white shadow-sm' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                >
+                    {tf.charAt(0).toUpperCase() + tf.slice(1)}
+                </button>
+            ))}
+        </div>
+
+        <div className="h-64 w-full text-xs">
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                    <defs>
+                        <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(120,120,120,0.1)" />
+                    <XAxis 
+                        dataKey="displayDate" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: '#94a3b8', fontSize: 11 }} 
+                        dy={10} 
+                        interval={getAxisInterval()}
+                    />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                    <Tooltip 
+                         contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(20, 20, 30, 0.8)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)', color: '#fff' }}
+                         labelStyle={{ color: '#fff' }}
+                    />
+                    <Area type="monotone" dataKey="amount" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorAmount)" strokeWidth={3} />
+                </AreaChart>
+            </ResponsiveContainer>
+        </div>
+      </div>
+  );
+
+  return (
+    <div className="pb-32 space-y-6 animate-in fade-in duration-700 relative">
+      <div className="flex justify-between items-start px-6 pt-safe-top">
+        <div>
+            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>
+        </div>
+        <div className="flex gap-2">
+            <button 
+                onClick={() => setIsCustomizing(true)}
+                className="p-3 bg-brand-500 text-white rounded-full hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30 flex items-center justify-center"
+                aria-label="Customize Dashboard"
+            >
+                <Layout size={22} />
+            </button>
+            <button 
+                onClick={() => onNavigate(View.SETTINGS)}
+                className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300"
+            >
+                <SettingsIcon size={22} />
+            </button>
+        </div>
+      </div>
+
+      <div className="px-6 space-y-6">
+        {activeWidgets.length === 0 && (
+             <div className="text-center py-12 text-slate-400 dark:text-slate-500 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+                <p>No widgets active.</p>
+                <button onClick={() => setIsCustomizing(true)} className="mt-2 text-brand-500 font-bold hover:underline">Customize Dashboard</button>
+             </div>
+        )}
+        
+        {activeWidgets.includes(AnalyticsWidgetType.PROJECTIONS) && renderProjections()}
+        {activeWidgets.includes(AnalyticsWidgetType.EXPENSE_TREND) && renderExpenseTrend()}
+        {activeWidgets.includes(AnalyticsWidgetType.SPENDING_PIE) && renderSpendingPie()}
+        {activeWidgets.includes(AnalyticsWidgetType.INCOME_VS_EXPENSE) && renderIncomeVsExpense()}
+        {activeWidgets.includes(AnalyticsWidgetType.BUDGET_LIMITS) && renderBudgetLimits()}
+      </div>
+
+      {/* Customization Sheet */}
+      {isCustomizing && (
+        <>
+            <div 
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity"
+                onClick={() => setIsCustomizing(false)}
+            />
+            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 z-50 rounded-t-[2.5rem] p-6 pb-safe-bottom shadow-2xl animate-in slide-in-from-bottom duration-300 border-t border-white/10">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Layout className="text-brand-500" /> Customize Dashboard
+                    </h3>
+                    <button onClick={() => setIsCustomizing(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500">
+                        <X size={20} />
+                    </button>
+                </div>
+                
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto no-scrollbar pb-6">
+                    {[
+                        { type: AnalyticsWidgetType.PROJECTIONS, label: "Projections", desc: "Monthly & Yearly linear forecast", icon: Calendar },
+                        { type: AnalyticsWidgetType.EXPENSE_TREND, label: "Expense Trend", desc: "Interactive spending timeline", icon: TrendingUp },
+                        { type: AnalyticsWidgetType.SPENDING_PIE, label: "Category Breakdown", desc: "Pie chart of expenses", icon: PieChart },
+                        { type: AnalyticsWidgetType.INCOME_VS_EXPENSE, label: "Income vs Expense", desc: "Monthly bar chart comparison", icon: BarChart },
+                        { type: AnalyticsWidgetType.BUDGET_LIMITS, label: "Budget Limits", desc: "Progress bars for category limits", icon: AlertTriangle },
+                    ].map((widget) => (
+                        <button 
+                            key={widget.type}
+                            onClick={() => toggleWidget(widget.type)}
+                            className={`w-full flex items-center p-4 rounded-2xl border transition-all ${
+                                activeWidgets.includes(widget.type) 
+                                    ? 'bg-brand-500/10 border-brand-500 dark:border-brand-500/50' 
+                                    : 'bg-slate-50 dark:bg-slate-800/50 border-transparent'
+                            }`}
+                        >
+                            <div className={`p-3 rounded-xl mr-4 ${activeWidgets.includes(widget.type) ? 'bg-brand-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}`}>
+                                <widget.icon size={20} />
+                            </div>
+                            <div className="flex-1 text-left">
+                                <h4 className={`font-bold ${activeWidgets.includes(widget.type) ? 'text-brand-700 dark:text-brand-300' : 'text-slate-700 dark:text-slate-200'}`}>{widget.label}</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">{widget.desc}</p>
+                            </div>
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${activeWidgets.includes(widget.type) ? 'bg-brand-500 border-brand-500' : 'border-slate-300 dark:border-slate-600'}`}>
+                                {activeWidgets.includes(widget.type) && <Check size={14} className="text-white" />}
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </>
+      )}
     </div>
   );
 };

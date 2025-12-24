@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { Transaction, TransactionType, Category } from '../types';
+import { Transaction, TransactionType } from '../types';
 
 // Access the key safely. Vite replaces this string during build.
 // @ts-ignore
@@ -44,7 +44,7 @@ export const getBudgetAnalysis = async (transactions: Transaction[]): Promise<st
 You have tracked **${transactions.length} transactions** so far. Your total expenses currently sit at **$${totalSpent.toFixed(2)}**. 
 
 **2. Top Spending Category**
-Your spending is highest in **${topCatName}**. ${topCatName === Category.FOOD ? 'Dining out is often the easiest place to cut back!' : 'Check if these are fixed or variable costs.'}
+Your spending is highest in **${topCatName}**. ${topCatName === 'Food' ? 'Dining out is often the easiest place to cut back!' : 'Check if these are fixed or variable costs.'}
 
 **3. Projection**
 *Linear Projection:* Based on your current activity, you are on track to stay within a standard budget, provided no large unexpected expenses occur.

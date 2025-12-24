@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, PieChart, Plus, History } from 'lucide-react';
+import { Home, PieChart, Plus, History, Target } from 'lucide-react';
 import { View } from '../types';
 
 interface BottomNavProps {
@@ -25,7 +25,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
 
   return (
     <div 
-      className={`fixed bottom-6 left-0 right-0 px-6 z-50 pointer-events-none transition-transform duration-300 ease-in-out ${
+      className={`fixed bottom-6 pb-[env(safe-area-inset-bottom)] left-0 right-0 px-6 z-50 pointer-events-none transition-transform duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : 'translate-y-[200%]'
       }`}
     >
@@ -43,6 +43,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
 
             {/* Right Group */}
             <div className="col-span-2 flex justify-evenly items-center pl-2">
+                <NavButton view={View.BUDGET} icon={Target} />
                 <NavButton view={View.ANALYTICS} icon={PieChart} />
             </div>
 
