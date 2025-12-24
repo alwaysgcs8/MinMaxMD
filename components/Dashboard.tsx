@@ -67,7 +67,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
   return (
     <div className="space-y-6 pb-32 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex justify-between items-start px-6 pt-10 pb-4">
+      <div className="flex justify-between items-start px-6 pt-safe-top pb-4">
         <div>
             <h1 className="text-4xl font-light text-slate-800 dark:text-white tracking-tight">MinMax<span className="font-bold text-brand-600 dark:text-cyan-400">MD</span></h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium">Your financial flow</p>

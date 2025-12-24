@@ -33,8 +33,8 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ onAdd, onCancel 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white/80 backdrop-blur-3xl animate-in slide-in-from-bottom duration-500">
-      <div className="flex justify-between items-center p-8">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white/80 backdrop-blur-3xl animate-in slide-in-from-bottom duration-500 pt-safe-top">
+      <div className="flex justify-between items-center p-8 pt-4">
         <h2 className="text-2xl font-bold text-slate-900">New Transaction</h2>
         <button onClick={onCancel} className="bg-slate-100/50 p-2 rounded-full hover:bg-slate-200/50 transition-colors">
           <X size={24} className="text-slate-600" />

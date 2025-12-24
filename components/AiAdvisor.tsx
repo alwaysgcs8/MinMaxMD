@@ -82,7 +82,7 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
 
   return (
     <div className="h-full flex flex-col pb-32 animate-in fade-in duration-700">
-       <header className="px-6 pt-10 pb-4">
+       <header className="px-6 pt-safe-top pb-4">
         <div className="flex items-center gap-3 mb-2">
             <div className="bg-gradient-to-br from-brand-400 to-purple-500 p-2 rounded-xl text-white shadow-lg shadow-brand-500/30">
                 <Bot size={24} />

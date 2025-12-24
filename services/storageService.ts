@@ -1,10 +1,10 @@
 import { Transaction, RecurringTransaction, BudgetLimit, Theme } from '../types';
 import { INITIAL_TRANSACTIONS } from '../constants';
 
-const STORAGE_KEY = 'budget_wise_transactions';
-const RECURRING_KEY = 'budget_wise_recurring';
-const LIMITS_KEY = 'budget_wise_limits';
-const THEME_KEY = 'budget_wise_theme';
+const STORAGE_KEY = 'budget_wise_v2_transactions';
+const RECURRING_KEY = 'budget_wise_v2_recurring';
+const LIMITS_KEY = 'budget_wise_v2_limits';
+const THEME_KEY = 'budget_wise_v2_theme';
 
 export const getStoredTransactions = (): Transaction[] => {
   try {

@@ -12,29 +12,4 @@ export const CATEGORY_COLORS: Record<Category, string> = {
   [Category.OTHER]: '#64748b', // Slate
 };
 
-export const INITIAL_TRANSACTIONS: Transaction[] = [
-  {
-    id: '1',
-    amount: 2500,
-    category: Category.INCOME,
-    description: 'Monthly Salary',
-    date: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
-    type: TransactionType.INCOME
-  },
-  {
-    id: '2',
-    amount: 65,
-    category: Category.FOOD,
-    description: 'Grocery Run',
-    date: new Date(new Date().getFullYear(), new Date().getMonth(), 3).toISOString(),
-    type: TransactionType.EXPENSE
-  },
-  {
-    id: '3',
-    amount: 1200,
-    category: Category.HOUSING,
-    description: 'Rent',
-    date: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
-    type: TransactionType.EXPENSE
-  }
-];
+export const INITIAL_TRANSACTIONS: Transaction[] = [];

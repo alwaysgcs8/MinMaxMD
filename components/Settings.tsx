@@ -67,7 +67,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, budget
 
   return (
     <div className="pb-32 animate-in fade-in duration-500 space-y-8">
-      <header className="px-6 pt-10 pb-4 flex items-center gap-4">
+      <header className="px-6 pt-safe-top pb-4 flex items-center gap-4">
         <button 
             onClick={onBack}
             className="p-2 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all text-slate-600 dark:text-slate-300"

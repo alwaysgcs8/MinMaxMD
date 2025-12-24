@@ -120,7 +120,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
 
   return (
     <div className="pb-32 space-y-8 animate-in fade-in duration-700">
-      <div className="flex justify-between items-start px-6 pt-10 pb-4">
+      <div className="flex justify-between items-start px-6 pt-safe-top pb-4">
         <div>
             <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>

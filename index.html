@@ -77,6 +77,12 @@
         scrollbar-width: none;
       }
       
+      /* Safe Area Top Padding */
+      .pt-safe-top {
+        padding-top: 3.5rem; /* Fallback for browsers not supporting env() */
+        padding-top: max(3.5rem, env(safe-area-inset-top) + 1.5rem);
+      }
+      
       /* Light Mode Liquid Background */
       .liquid-bg {
         background: radial-gradient(circle at 50% 50%, rgba(224, 242, 254, 0.8), rgba(236, 254, 255, 0) 50%),
