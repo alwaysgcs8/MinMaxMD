@@ -70,16 +70,14 @@
       }
 
       /* 
-         CRITICAL IOS FIX: 
-         1. Use 100dvh (dynamic viewport height) to respect address bars.
-         2. Disable overscroll-behavior to kill the rubber-band effect that reveals white gaps.
+         FIXED APP SHELL STRATEGY
+         1. Apply background color to html to ensure "gaps" are colored correctly.
+         2. Lock body to the viewport using position: fixed; inset: 0.
+         3. This moves scrolling responsibly to #root, preventing body rubber-banding.
       */
       html {
-        height: 100dvh;
-        width: 100vw;
         background-color: var(--bg-light);
         -webkit-tap-highlight-color: transparent;
-        overflow: hidden; /* Prevent root scroll */
       }
       
       html.dark {
@@ -87,46 +85,45 @@
       }
 
       body {
-        margin: 0;
-        padding: 0;
+        position: fixed; /* Locks the app to the screen, preventing bounce */
+        inset: 0;        /* top:0, right:0, bottom:0, left:0 */
         width: 100%;
         height: 100%;
-        min-height: 100dvh;
-        overflow: hidden; /* Prevent body scroll, let #root handle it */
-        overscroll-behavior: none; /* Disables pull-to-refresh / rubber banding */
-        background-color: transparent;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* No scrolling on body */
+        background-color: var(--bg-light);
+      }
+      
+      .dark body {
+        background-color: var(--bg-dark);
       }
 
       /* 
-         OVERSIZED BACKGROUND STRATEGY
-         Instead of 100%, we make it huge and center it.
-         This ensures that even if the screen bounces, the background is there.
+         Background Layer
+         Absolute positioned within the fixed body
       */
       #app-background {
-        position: fixed;
-        top: -50vh;
-        left: -50vw;
-        width: 200vw;
-        height: 200vh;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
         z-index: -1;
         pointer-events: none;
         
-        /* Light Mode Gradient */
         background: radial-gradient(circle at 50% 50%, rgba(224, 242, 254, 0.8), rgba(236, 254, 255, 0) 50%),
                     radial-gradient(circle at 100% 0%, rgba(224, 231, 255, 0.8), rgba(224, 231, 255, 0) 50%),
                     radial-gradient(circle at 0% 100%, rgba(240, 253, 244, 0.8), rgba(240, 253, 244, 0) 50%);
-        background-color: var(--bg-light); 
         background-size: cover;
       }
 
-      /* Dark Mode Background applied to the layer */
       .dark #app-background {
         background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0) 50%),
                     radial-gradient(circle at 100% 0%, rgba(30, 27, 75, 0.3), rgba(30, 27, 75, 0) 50%),
                     radial-gradient(circle at 0% 100%, rgba(2, 44, 34, 0.3), rgba(2, 44, 34, 0) 50%);
-        background-color: var(--bg-dark);
       }
 
+      /* Scrollbar Hiding */
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
@@ -169,8 +166,8 @@
     <!-- Fixed Background Layer -->
     <div id="app-background"></div>
     
-    <!-- App Root -->
-    <div id="root" class="h-full w-full relative z-10"></div>
+    <!-- App Root: Handles the scrolling internally -->
+    <div id="root" class="h-full w-full relative z-10 overflow-y-auto no-scrollbar scroll-smooth"></div>
     
     <script type="module" src="/index.tsx"></script>
     <script>

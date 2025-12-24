@@ -38,6 +38,8 @@ const App: React.FC = () => {
   // Scroll visibility logic
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
+  // We use document.getElementById('root') or window for scroll in this new layout, 
+  // but using a Ref on the main wrapper is safer for component isolation.
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Helper to process recurring rules
@@ -208,6 +210,8 @@ const App: React.FC = () => {
   }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded, user]);
 
   const handleScroll = () => {
+    // In fixed body layout, we might scroll #root. 
+    // If we attach the ref to the main element inside App, we capture that.
     if (scrollContainerRef.current) {
         const currentScrollY = scrollContainerRef.current.scrollTop;
         if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
@@ -319,9 +323,10 @@ const App: React.FC = () => {
   if (!isLoaded) return null;
 
   return (
-    // Use 100dvh (dynamic viewport height) to respect iOS address bar retraction
-    <div className="h-[100dvh] w-full relative flex flex-col bg-transparent overflow-hidden">
-      {/* Content Area */}
+    // Root container now fills the fixed body
+    <div className="h-full w-full relative flex flex-col bg-transparent">
+      {/* Content Area - Logic for scrolling moved to a wrapper inside if needed, or we rely on #root scrolling in index.html. 
+          Here we keep the ref to track scroll for Nav visibility. */}
       <main 
         ref={scrollContainerRef}
         onScroll={handleScroll}
