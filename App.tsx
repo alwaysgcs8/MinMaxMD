@@ -319,8 +319,8 @@ const App: React.FC = () => {
   if (!isLoaded) return null;
 
   return (
-    // Use h-screen and h-[100dvh] to ensure we fill the dynamic viewport completely
-    <div className="h-screen h-[100dvh] w-full relative flex flex-col bg-transparent">
+    // Only use h-[100dvh] to match the actual dynamic viewport height on mobile
+    <div className="h-[100dvh] w-full relative flex flex-col bg-transparent overflow-hidden">
       {/* Content Area */}
       <main 
         ref={scrollContainerRef}

@@ -73,6 +73,7 @@
         height: 100%;
         width: 100%;
         overflow: hidden; /* Prevent elastic scrolling on body */
+        background-color: var(--bg-light); /* Fallback to prevent white flash */
       }
 
       body {
@@ -83,20 +84,20 @@
         height: 100%;
         overflow: hidden; /* Prevent elastic scrolling on body */
         overscroll-behavior: none;
-        background-color: var(--bg-light); /* Fallback */
+        background-color: transparent; 
       }
       
       /* 
          Fixed Background Layer 
-         Using position: fixed and 100dvh ensures it covers the screen 
-         behind the address bar on iOS portrait mode.
+         Using negative margins and >100% size ensures coverage 
+         even during rubber-banding or address bar resizing quirks.
       */
       #app-background {
         position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        height: 100dvh; /* Dynamic Viewport Height */
+        top: -10vh;
+        left: -10vw;
+        width: 120vw;
+        height: 120vh;
         z-index: -1;
         pointer-events: none;
         transition: background-color 0.5s ease;
@@ -117,7 +118,7 @@
         background-color: var(--bg-dark);
       }
       
-      .dark body {
+      .dark html {
         background-color: var(--bg-dark);
       }
 
