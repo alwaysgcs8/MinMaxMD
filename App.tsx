@@ -39,9 +39,7 @@ const App: React.FC = () => {
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
   
-  // NOTE: In the Fixed Root Scroller strategy, the scroll event happens on the #root element.
-
-  // Helper to process recurring rules
+  // Helper to process recurring transactions
   const processRecurringTransactions = (
     currentTxs: Transaction[],
     currentRecurring: RecurringTransaction[]
@@ -208,13 +206,10 @@ const App: React.FC = () => {
     }
   }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded, user]);
 
-  // Handle scrolling of the #root element for Nav visibility
+  // Handle window scrolling for Nav visibility
   useEffect(() => {
-    const rootElement = document.getElementById('root');
-    if (!rootElement) return;
-
     const handleScroll = () => {
-        const currentScrollY = rootElement.scrollTop;
+        const currentScrollY = window.scrollY;
         if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
             setIsNavVisible(true);
         } else if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
@@ -223,8 +218,8 @@ const App: React.FC = () => {
         lastScrollY.current = currentScrollY;
     };
 
-    rootElement.addEventListener('scroll', handleScroll, { passive: true });
-    return () => rootElement.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleAddTransaction = (data: { transaction: Omit<Transaction, 'id'>, frequency: RecurrenceFrequency }) => {
@@ -327,7 +322,7 @@ const App: React.FC = () => {
   if (!isLoaded) return null;
 
   return (
-    // min-h-full ensures the app content stretches to fill the calculated #root height
+    // min-h-full ensures the app content stretches to fill the screen
     <div className="min-h-full w-full flex flex-col bg-transparent">
       {/* Main content expands to fill available space */}
       <main className="flex-1">

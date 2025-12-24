@@ -46,25 +46,23 @@
       }
 
       /* 
-         STRATEGY: Fixed Body 
-         This matches the snippet provided. 
+         STRATEGY: Natural Scrolling with 100dvh
+         Replaces fixed body strategy for better mobile browser behavior.
       */
       
-      html {
-        /* Ensure html takes full size */
-        width: 100%;
+      html, body {
         height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
         -webkit-tap-highlight-color: transparent;
       }
 
       body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100vh; /* As requested */
+        min-height: 100vh;   /* fallback */
+        min-height: 100dvh;  /* correct in modern iOS */
         background-color: var(--bg-light);
-        overflow: hidden; /* Prevent body itself from scrolling */
-        position: fixed; /* Lock the body in place on iOS */
+        overflow-x: hidden;
       }
       
       .dark body {
@@ -72,23 +70,16 @@
       }
 
       /* 
-         THE ROOT SCROLLER (.test equivalent)
-         This element fills the screen and handles the scrolling internally.
+         THE ROOT CONTAINER
+         Now allows natural window scrolling instead of internal overflow.
       */
       #root {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh; /* As requested */
-        
-        /* Enable internal scrolling */
-        overflow-y: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
+        width: 100%;
         overflow-x: hidden;
-        -webkit-overflow-scrolling: touch; /* Momentum scrolling */
-        
+        position: relative;
         z-index: 10;
-        scroll-behavior: smooth;
         
         /* Padding for iPhone Home Bar / Safe Areas */
         padding-bottom: env(safe-area-inset-bottom);
@@ -126,9 +117,9 @@
         padding-bottom: max(1rem, env(safe-area-inset-bottom));
       }
 
-      /* Hide Scrollbar */
-      #root::-webkit-scrollbar { display: none; }
-      #root { -ms-overflow-style: none; scrollbar-width: none; }
+      /* Hide Scrollbar for app-like feel */
+      html::-webkit-scrollbar { display: none; }
+      html { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
     
     <script type="importmap">
@@ -152,19 +143,19 @@
 </head>
   <body class="text-slate-900 dark:text-slate-100 selection:bg-brand-500/30">
     <div id="app-background"></div>
-    <!-- #root acts as the .test wrapper -->
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          // Changed from '/sw.js' to './sw.js' to prevent cross-origin errors in preview environments
+          navigator.serviceWorker.register('./sw.js')
             .then(registration => {
               console.log('SW registered: ', registration);
             })
             .catch(registrationError => {
-              // Gracefully handle errors (like cross-origin in preview environments)
-              console.warn('SW registration failed: ', registrationError);
+              // Silently handle errors in preview environments to avoid console noise
+              console.log('SW registration skipped (preview mode)');
             });
         });
       }
