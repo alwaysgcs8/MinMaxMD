@@ -69,37 +69,31 @@
         --bg-dark: #020617;
       }
 
-      html {
-        height: 100%;
+      /* 
+         CRITICAL IOS FIX: 
+         Lock the html and body to the viewport.
+         This prevents the browser chrome "rubber banding" on the document itself
+         and ensures the background is truly fixed to the screen edges.
+      */
+      html, body {
+        position: fixed;
+        inset: 0; /* top:0, right:0, bottom:0, left:0 */
         width: 100%;
-        overflow: hidden; /* Prevent elastic scrolling on body */
-        /* Fallback background color matches the gradient base */
-        background-color: var(--bg-light); 
+        height: 100%;
+        overflow: hidden; /* Scroll is handled in #root */
         -webkit-tap-highlight-color: transparent;
-      }
-
-      body {
-        font-family: 'Outfit', sans-serif;
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden; /* Prevent elastic scrolling on body */
-        overscroll-behavior: none;
-        background-color: transparent; 
+        background-color: var(--bg-light); 
       }
       
       /* 
-         Fixed Background Layer 
-         Using standard fixed positioning with 100vh guarantees it covers
-         the full screen on iOS, behind the safe areas.
+         Background Layer
+         Anchored to the fixed body.
       */
       #app-background {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh; /* Using vh (static) instead of dvh prevents resize jumps and covers fully */
+        position: absolute; /* Absolute relative to fixed body */
+        inset: 0;
+        width: 100%;
+        height: 100%;
         z-index: -1;
         pointer-events: none;
         transition: background-color 0.5s ease;
@@ -120,7 +114,7 @@
         background-color: var(--bg-dark);
       }
       
-      .dark html {
+      .dark html, .dark body {
         background-color: var(--bg-dark);
       }
 

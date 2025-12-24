@@ -44,7 +44,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
       });
   }, [transactions, searchTerm, sortKey, sortDirection]);
 
-  const groupedTransactions = useMemo(() => {
+  const groupedTransactions: Record<string, Transaction[]> = useMemo(() => {
     if (sortKey === 'amount') {
         return { 'All Transactions': filteredTransactions };
     }
