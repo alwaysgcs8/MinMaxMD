@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Transaction, RecurrenceFrequency, RecurringTransaction, BudgetLimit, Theme } from './types';
 import { 
     getStoredTransactions, saveTransactions, 
@@ -20,6 +20,11 @@ const App: React.FC = () => {
   const [budgetLimits, setBudgetLimits] = useState<BudgetLimit[]>([]);
   const [theme, setTheme] = useState<Theme>('light');
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Scroll visibility logic
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Helper to process recurring rules
   const processRecurringTransactions = (
@@ -115,6 +120,23 @@ const App: React.FC = () => {
     }
   }, [transactions, recurringTransactions, budgetLimits, theme, isLoaded]);
 
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+        const currentScrollY = scrollContainerRef.current.scrollTop;
+        
+        // Show if scrolling up or at the very top
+        if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
+            setIsNavVisible(true);
+        } 
+        // Hide if scrolling down and not at top
+        else if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+            setIsNavVisible(false);
+        }
+        
+        lastScrollY.current = currentScrollY;
+    }
+  };
+
   const handleAddTransaction = (data: { transaction: Omit<Transaction, 'id'>, frequency: RecurrenceFrequency }) => {
     const { transaction: txData, frequency } = data;
     
@@ -179,14 +201,22 @@ const App: React.FC = () => {
 
   return (
     <div className="h-full w-full relative flex flex-col bg-transparent">
-      {/* Content Area */}
-      <main className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
+      {/* Content Area - Added Ref and onScroll handler */}
+      <main 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto no-scrollbar scroll-smooth"
+      >
         {renderView()}
       </main>
 
       {/* Navigation */}
       {currentView !== View.ADD && currentView !== View.SETTINGS && (
-        <BottomNav currentView={currentView} onViewChange={setCurrentView} />
+        <BottomNav 
+            currentView={currentView} 
+            onViewChange={setCurrentView} 
+            isVisible={isNavVisible}
+        />
       )}
     </div>
   );

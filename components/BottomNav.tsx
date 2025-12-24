@@ -5,9 +5,10 @@ import { View } from '../types';
 interface BottomNavProps {
   currentView: View;
   onViewChange: (view: View) => void;
+  isVisible: boolean;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange, isVisible }) => {
   const NavButton = ({ view, icon: Icon, label }: { view: View; icon: any; label?: string }) => (
     <button
       onClick={() => onViewChange(view)}
@@ -23,12 +24,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange 
   );
 
   return (
-    <div className="fixed bottom-6 left-0 right-0 px-6 z-50 pointer-events-none">
-      <div className="max-w-md mx-auto pointer-events-auto">
-        <div className="relative bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-glass rounded-[2rem] h-20 px-4 grid grid-cols-5 items-center">
+    <div 
+      className={`fixed bottom-6 left-0 right-0 px-6 z-50 pointer-events-none transition-transform duration-300 ease-in-out ${
+        isVisible ? 'translate-y-0' : 'translate-y-[200%]'
+      }`}
+    >
+      {/* Changed max-w-md to max-w-[20rem] to make it less wide */}
+      <div className="max-w-[20rem] mx-auto pointer-events-auto">
+        <div className="relative bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-glass rounded-[2rem] h-20 px-2 grid grid-cols-5 items-center">
             
             {/* Left Group */}
-            <div className="col-span-2 flex justify-evenly items-center pr-4">
+            <div className="col-span-2 flex justify-evenly items-center pr-2">
                 <NavButton view={View.DASHBOARD} icon={Home} />
             </div>
 
@@ -36,7 +42,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange 
             <div className="col-span-1"></div>
 
             {/* Right Group */}
-            <div className="col-span-2 flex justify-evenly items-center pl-4">
+            <div className="col-span-2 flex justify-evenly items-center pl-2">
                 <NavButton view={View.ANALYTICS} icon={PieChart} />
             </div>
 
