@@ -25,9 +25,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
 
   return (
     <div 
-      className={`fixed bottom-6 pb-[env(safe-area-inset-bottom)] left-0 right-0 px-6 z-50 pointer-events-none transition-transform duration-300 ease-in-out ${
+      className={`fixed left-0 right-0 px-6 z-50 pointer-events-none transition-transform duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : 'translate-y-[200%]'
       }`}
+      style={{
+        bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 20px))'
+      }}
     >
       <div className="max-w-[20rem] mx-auto pointer-events-auto">
         <div className="relative bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-glass rounded-[2rem] h-20 px-2 grid grid-cols-5 items-center">
