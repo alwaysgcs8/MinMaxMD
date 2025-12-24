@@ -73,7 +73,9 @@
         height: 100%;
         width: 100%;
         overflow: hidden; /* Prevent elastic scrolling on body */
-        background-color: var(--bg-light); /* Fallback to prevent white flash */
+        /* Fallback background color matches the gradient base */
+        background-color: var(--bg-light); 
+        -webkit-tap-highlight-color: transparent;
       }
 
       body {
@@ -89,15 +91,15 @@
       
       /* 
          Fixed Background Layer 
-         Using negative margins and >100% size ensures coverage 
-         even during rubber-banding or address bar resizing quirks.
+         Using standard fixed positioning with 100vh guarantees it covers
+         the full screen on iOS, behind the safe areas.
       */
       #app-background {
         position: fixed;
-        top: -10vh;
-        left: -10vw;
-        width: 120vw;
-        height: 120vh;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh; /* Using vh (static) instead of dvh prevents resize jumps and covers fully */
         z-index: -1;
         pointer-events: none;
         transition: background-color 0.5s ease;
