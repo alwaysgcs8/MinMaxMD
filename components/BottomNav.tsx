@@ -14,8 +14,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
       onClick={() => onViewChange(view)}
       className={`relative flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300 ${
         currentView === view
-          ? 'text-brand-600 dark:text-cyan-400 bg-white dark:bg-white/10 shadow-sm scale-110' 
-          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/40 dark:hover:bg-white/5'
+          ? 'text-brand-600 dark:text-cyan-400 bg-slate-100 dark:bg-white/10 shadow-sm scale-110' 
+          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
       }`}
     >
       <Icon size={24} strokeWidth={currentView === view ? 2.5 : 2} />
@@ -33,7 +33,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
       }}
     >
       <div className="max-w-[20rem] mx-auto pointer-events-auto">
-        <div className="relative bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-glass rounded-[2rem] h-20 px-2 grid grid-cols-5 items-center">
+        <div className="relative bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-white/10 shadow-glass rounded-[2rem] h-20 px-2 grid grid-cols-5 items-center">
             
             {/* Left Group */}
             <div className="col-span-2 flex justify-evenly items-center pr-2 gap-1">
@@ -54,7 +54,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
             <div className="absolute left-1/2 -translate-x-1/2 -top-6">
                 <button
                 onClick={() => onViewChange(View.ADD)}
-                className="group flex items-center justify-center w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-600 dark:from-cyan-500 dark:to-purple-600 rounded-[1.5rem] text-white shadow-neon dark:shadow-neon-dark border-4 border-[#f0f2f5] dark:border-[#020617] transition-all active:scale-95 hover:scale-105 hover:rotate-90 duration-500"
+                className="group flex items-center justify-center w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 dark:from-cyan-500 dark:to-purple-600 rounded-[1.5rem] text-white shadow-xl shadow-brand-500/30 dark:shadow-neon-dark border-[6px] border-white dark:border-[#0f172a] transition-all active:scale-95 hover:scale-105 hover:rotate-90 duration-500"
                 >
                 <Plus size={32} />
                 </button>

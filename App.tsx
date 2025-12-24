@@ -38,9 +38,9 @@ const App: React.FC = () => {
   // Scroll visibility logic
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
-  // We use document.getElementById('root') or window for scroll in this new layout, 
-  // but using a Ref on the main wrapper is safer for component isolation.
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  // NOTE: In the Fixed Root Scroller strategy, the scroll event happens on the #root element,
+  // not on a div inside App. We listen to the #root element.
 
   // Helper to process recurring rules
   const processRecurringTransactions = (
@@ -209,19 +209,24 @@ const App: React.FC = () => {
     }
   }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded, user]);
 
-  const handleScroll = () => {
-    // In fixed body layout, we might scroll #root. 
-    // If we attach the ref to the main element inside App, we capture that.
-    if (scrollContainerRef.current) {
-        const currentScrollY = scrollContainerRef.current.scrollTop;
+  // Handle scrolling of the #root element for Nav visibility
+  useEffect(() => {
+    const rootElement = document.getElementById('root');
+    if (!rootElement) return;
+
+    const handleScroll = () => {
+        const currentScrollY = rootElement.scrollTop;
         if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
             setIsNavVisible(true);
         } else if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
             setIsNavVisible(false);
         }
         lastScrollY.current = currentScrollY;
-    }
-  };
+    };
+
+    rootElement.addEventListener('scroll', handleScroll, { passive: true });
+    return () => rootElement.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleAddTransaction = (data: { transaction: Omit<Transaction, 'id'>, frequency: RecurrenceFrequency }) => {
     const { transaction: txData, frequency } = data;
@@ -323,19 +328,14 @@ const App: React.FC = () => {
   if (!isLoaded) return null;
 
   return (
-    // Root container now fills the fixed body
-    <div className="h-full w-full relative flex flex-col bg-transparent">
-      {/* Content Area - Logic for scrolling moved to a wrapper inside if needed, or we rely on #root scrolling in index.html. 
-          Here we keep the ref to track scroll for Nav visibility. */}
-      <main 
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto no-scrollbar scroll-smooth"
-      >
+    // App container is just a flex wrapper, min-h-full ensures it stretches in the scrollable root
+    <div className="min-h-full w-full flex flex-col bg-transparent">
+      {/* Main content doesn't handle scroll anymore, it just expands. */}
+      <main className="flex-1">
         {renderView()}
       </main>
 
-      {/* Navigation */}
+      {/* Navigation - Fixed position works relative to viewport inside the fixed root */}
       {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && (
         <BottomNav 
             currentView={currentView} 

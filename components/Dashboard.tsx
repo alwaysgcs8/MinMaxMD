@@ -116,7 +116,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
         </div>
         <button 
             onClick={() => onNavigate(View.SETTINGS)}
-            className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300"
+            className="p-3 bg-slate-100 dark:bg-white/10 rounded-full hover:bg-slate-200 dark:hover:bg-white/20 transition-all shadow-sm text-slate-600 dark:text-slate-300"
         >
             <SettingsIcon size={22} />
         </button>
@@ -124,14 +124,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
 
       {/* Timeframe Toggles */}
       <div className="px-6">
-        <div className="flex bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-[1.2rem] backdrop-blur-sm">
+        <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-[1.2rem]">
             {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((tf) => (
                 <button
                     key={tf}
                     onClick={() => setTimeframe(tf)}
                     className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-300 capitalize ${
                         timeframe === tf 
-                        ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-white shadow-sm scale-[1.02]' 
+                        ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-white shadow-sm scale-[1.02] border border-slate-100 dark:border-transparent' 
                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                 >
@@ -144,13 +144,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
       {/* Liquid Card (Dynamic Balance) */}
       <div className="mx-6">
         <div 
-            className="p-1 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-800/60 dark:to-black/40 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-glass transition-all duration-500"
+            className="p-1 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-black/40 border border-slate-200 dark:border-white/10 shadow-lg transition-all duration-500"
         >
-            <div className="absolute inset-0 bg-gradient-to-br opacity-50 from-emerald-400/20 via-teal-400/20 to-brand-400/20 dark:from-emerald-500/10 dark:via-teal-500/10 dark:to-cyan-500/10"></div>
-            {/* Gloss Line */}
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none mix-blend-overlay"></div>
+            {/* Subtle light accent blob */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             
-            <div className="relative p-7 rounded-[2.2rem] bg-gradient-to-br from-white/60 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-md">
+            <div className="relative p-7 rounded-[2.2rem] bg-white/50 dark:bg-transparent backdrop-blur-sm">
                 
                 {/* Main Number */}
                 <div className="flex justify-between items-start mb-8 min-h-[5rem]">
@@ -167,9 +166,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
                 {/* Metrics Row */}
                 <div className="flex gap-4">
                     {/* Income */}
-                    <div className="flex-1 bg-emerald-50/50 dark:bg-emerald-900/20 border border-emerald-100/50 dark:border-emerald-500/20 rounded-2xl p-4 backdrop-blur-sm animate-in zoom-in duration-300">
-                        <div className="flex items-center gap-2 mb-1 text-emerald-700/70 dark:text-emerald-400/80 text-xs font-bold uppercase tracking-wider">
-                        <div className="bg-emerald-500/20 p-1.5 rounded-full">
+                    <div className="flex-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl p-4">
+                        <div className="flex items-center gap-2 mb-1 text-emerald-700 dark:text-emerald-400/80 text-xs font-bold uppercase tracking-wider">
+                        <div className="bg-emerald-100 dark:bg-emerald-500/20 p-1.5 rounded-full">
                             <ArrowUpRight size={14} className="text-emerald-600 dark:text-emerald-400" />
                         </div>
                         Income <span className="opacity-60 hidden sm:inline">({getTimeframeShortLabel()})</span>
@@ -178,9 +177,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
                     </div>
 
                     {/* Expense */}
-                    <div className="flex-1 bg-rose-50/50 dark:bg-rose-900/20 border border-rose-100/50 dark:border-rose-500/20 rounded-2xl p-4 backdrop-blur-sm animate-in zoom-in duration-300 delay-75">
-                        <div className="flex items-center gap-2 mb-1 text-rose-700/70 dark:text-rose-400/80 text-xs font-bold uppercase tracking-wider">
-                        <div className="bg-rose-500/20 p-1.5 rounded-full">
+                    <div className="flex-1 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-500/20 rounded-2xl p-4">
+                        <div className="flex items-center gap-2 mb-1 text-rose-700 dark:text-rose-400/80 text-xs font-bold uppercase tracking-wider">
+                        <div className="bg-rose-100 dark:bg-rose-500/20 p-1.5 rounded-full">
                             <ArrowDownRight size={14} className="text-rose-600 dark:text-rose-400" />
                         </div>
                         Expense <span className="opacity-60 hidden sm:inline">({getTimeframeShortLabel()})</span>
@@ -200,16 +199,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
         
         <div className="space-y-4">
           {recentTransactions.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 dark:text-slate-500 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+            <div className="text-center py-12 text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
               <p>No transactions found.</p>
               <p className="text-sm mt-1">Start by adding a new record.</p>
             </div>
           ) : (
             recentTransactions.map(t => (
-              <div key={t.id} className="group flex items-center p-4 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm backdrop-blur-md transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-glass-sm hover:scale-[1.01]">
+              <div key={t.id} className="group flex items-center p-4 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-100 dark:border-white/5 shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:shadow-md hover:scale-[1.01]">
                 <div 
-                  className="w-14 h-14 rounded-[1.2rem] flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-lg transform transition-transform group-hover:rotate-6"
-                  style={{ backgroundColor: getCategoryColor(t.category), opacity: 0.9 }}
+                  className="w-14 h-14 rounded-[1.2rem] flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-sm transform transition-transform group-hover:rotate-6"
+                  style={{ backgroundColor: getCategoryColor(t.category), opacity: 1 }}
                 >
                   {t.category[0]}
                 </div>
