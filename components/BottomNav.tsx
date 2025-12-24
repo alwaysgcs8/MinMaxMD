@@ -29,7 +29,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
         isVisible ? 'translate-y-0' : 'translate-y-[200%]'
       }`}
       style={{
-        bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 20px))'
+        bottom: 'calc(0.5rem + env(safe-area-inset-bottom, 20px))'
       }}
     >
       <div className="max-w-[20rem] mx-auto pointer-events-auto">

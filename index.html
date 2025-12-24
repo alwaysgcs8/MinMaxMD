@@ -66,6 +66,7 @@
       
       html {
         height: 100%;
+        height: -webkit-fill-available;
         width: 100%;
         overflow: hidden;
         overscroll-behavior: none;
@@ -73,10 +74,10 @@
 
       body {
         font-family: 'Outfit', sans-serif;
-        transition: background-color 0.5s ease;
         position: fixed;
         inset: 0;
         height: 100%;
+        height: -webkit-fill-available;
         width: 100%;
         overflow: hidden;
         overscroll-behavior: none;
@@ -101,18 +102,26 @@
         padding-bottom: max(1rem, env(safe-area-inset-bottom));
       }
       
-      /* Light Mode Liquid Background */
-      .liquid-bg {
+      /* Liquid Background Layer */
+      #bg-layer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100vh;
+        height: 100dvh; /* Dynamic Viewport Height for iOS */
+        z-index: 0; /* Behind content, but clearly visible */
+        transition: background-color 0.5s ease;
         background: radial-gradient(circle at 50% 50%, rgba(224, 242, 254, 0.8), rgba(236, 254, 255, 0) 50%),
                     radial-gradient(circle at 100% 0%, rgba(224, 231, 255, 0.8), rgba(224, 231, 255, 0) 50%),
                     radial-gradient(circle at 0% 100%, rgba(240, 253, 244, 0.8), rgba(240, 253, 244, 0) 50%);
         background-color: #f0f2f5;
         background-size: cover;
-        /* background-attachment: fixed; removed for iOS full-screen fix */
       }
 
       /* Dark Mode Liquid Background */
-      .dark .liquid-bg {
+      .dark #bg-layer {
         background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0) 50%),
                     radial-gradient(circle at 100% 0%, rgba(30, 27, 75, 0.3), rgba(30, 27, 75, 0) 50%),
                     radial-gradient(circle at 0% 100%, rgba(2, 44, 34, 0.3), rgba(2, 44, 34, 0) 50%);
@@ -143,8 +152,13 @@
 }
 </script>
 </head>
-  <body class="liquid-bg text-slate-900 dark:text-slate-100 selection:bg-brand-500/30">
-    <div id="root" class="h-full w-full"></div>
+  <body class="text-slate-900 dark:text-slate-100 selection:bg-brand-500/30">
+    <!-- Separate Background Layer -->
+    <div id="bg-layer"></div>
+    
+    <!-- App Root with higher Z-Index -->
+    <div id="root" class="h-full w-full relative z-10"></div>
+    
     <script type="module" src="/index.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {

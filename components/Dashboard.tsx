@@ -108,7 +108,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
   };
 
   return (
-    <div className="space-y-6 pb-32 animate-in fade-in duration-700">
+    <div className="space-y-6 pb-40 animate-in fade-in duration-700">
       {/* Header */}
       <div className="flex justify-between items-start px-6 pt-safe-top pb-2">
         <div>
