@@ -60,7 +60,7 @@ const App: React.FC = () => {
         const x = e.touches[0].clientX;
         const y = e.touches[0].clientY;
         touchStart.current = { x, y };
-        // Trigger from left edge
+        // Trigger only from very left edge
         isEligibleSwipe.current = x < 40;
     };
 
@@ -72,13 +72,13 @@ const App: React.FC = () => {
         const deltaX = currentX - touchStart.current.x;
         const deltaY = Math.abs(currentY - touchStart.current.y);
 
-        // If user moves vertically more than horizontally, cancel the swipe logic for this touch session
-        if (!isDragging && deltaY > deltaX && deltaY > 5) {
+        // Cancel swipe if user scrolls vertically significantly before horizontal movement starts
+        if (!isDragging && deltaY > deltaX && deltaY > 10) {
             isEligibleSwipe.current = false;
             return;
         }
 
-        if (!isDragging && deltaX > 10 && deltaX > deltaY) {
+        if (!isDragging && deltaX > 15 && deltaX > deltaY) {
             setIsDragging(true);
         }
 
@@ -103,7 +103,7 @@ const App: React.FC = () => {
                 handleBack();
                 setSwipeOffset(0);
                 setIsDragging(false);
-            }, 200);
+            }, 250);
         } else {
             setSwipeOffset(0);
             setIsDragging(false);
@@ -232,9 +232,9 @@ const App: React.FC = () => {
         if (!target.classList || !target.classList.contains('scroll-y-only')) return;
         const currentScrollY = target.scrollTop;
         const delta = currentScrollY - lastScrollY.current;
-        if (currentScrollY < 10) setIsNavVisible(true);
-        else if (delta > 5 && currentScrollY > 50) setIsNavVisible(false);
-        else if (delta < -10) setIsNavVisible(true);
+        if (currentScrollY < 20) setIsNavVisible(true);
+        else if (delta > 8 && currentScrollY > 60) setIsNavVisible(false);
+        else if (delta < -12) setIsNavVisible(true);
         lastScrollY.current = currentScrollY;
     };
     window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
@@ -360,11 +360,10 @@ const App: React.FC = () => {
   return (
     <div className="flex-1 w-full h-full flex flex-col bg-transparent overflow-hidden relative">
       <main 
-        className="flex-1 flex flex-col overflow-hidden w-full h-full" 
+        className="flex-1 flex flex-col overflow-hidden w-full h-full will-change-transform" 
         style={{ 
             transform: `translateX(${swipeOffset}px)`,
-            transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.1, 0.7, 0.1, 1)',
-            willChange: 'transform'
+            transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.1, 0.7, 0.1, 1)'
         }}
       >
         {renderView()}

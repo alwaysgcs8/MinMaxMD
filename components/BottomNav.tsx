@@ -29,12 +29,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onViewChange,
 
   return (
     <div 
-      className={`fixed left-0 right-0 z-[50] transition-all duration-500 ease-in-out pb-safe ${
-        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'
+      className={`bottom-nav-container transition-all duration-500 ease-in-out pb-safe bg-transparent ${
+        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-32 opacity-0 pointer-events-none'
       }`}
-      style={{ bottom: 0 }}
     >
-      <div className="max-w-lg mx-auto px-6 mb-4">
+      <div className="max-w-lg mx-auto px-6 mb-4 sm:mb-6">
         <div className="relative glass-panel bg-white/70 dark:bg-slate-900/80 shadow-2xl rounded-[2.5rem] h-16 sm:h-20 px-4 flex items-center justify-between border-white/20">
             
             <div className="flex-1 flex justify-around items-center">
