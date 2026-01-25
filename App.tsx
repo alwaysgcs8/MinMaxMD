@@ -7,13 +7,8 @@ import {
     getBudgetLimits, saveBudgetLimits,
     getOverallBudget, saveOverallBudget,
     getStoredTheme, saveTheme,
-    getStoredCategories, saveStoredCategories,
-    saveToCloud, loadFromCloud
+    getStoredCategories, saveStoredCategories
 } from './services/storageService';
-import { auth } from './services/firebase';
-// Fix: Use separate imports for functions and types to resolve export member errors
-import { onAuthStateChanged } from 'firebase/auth';
-import type { User } from 'firebase/auth';
 import { Dashboard } from './components/Dashboard';
 import { BottomNav } from './components/BottomNav';
 import { AddTransaction } from './components/AddTransaction';
@@ -40,7 +35,6 @@ const App: React.FC = () => {
   const [selectedRecurringTransaction, setSelectedRecurringTransaction] = useState<RecurringTransaction | null>(null);
   
   const [isAddingSubscription, setIsAddingSubscription] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
@@ -63,7 +57,6 @@ const App: React.FC = () => {
         const x = e.touches[0].clientX;
         const y = e.touches[0].clientY;
         touchStart.current = { x, y };
-        // Trigger only from very left edge
         isEligibleSwipe.current = x < 40;
     };
 
@@ -75,7 +68,6 @@ const App: React.FC = () => {
         const deltaX = currentX - touchStart.current.x;
         const deltaY = Math.abs(currentY - touchStart.current.y);
 
-        // Cancel swipe if user scrolls vertically significantly before horizontal movement starts
         if (!isDragging && deltaY > deltaX && deltaY > 10) {
             isEligibleSwipe.current = false;
             return;
@@ -192,24 +184,6 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!auth) return;
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-        setUser(currentUser as User | null);
-        if (currentUser && isLoaded) {
-            const cloudData = await loadFromCloud(currentUser.uid);
-            if (cloudData) {
-                setTransactions(cloudData.transactions || []);
-                setRecurringTransactions(cloudData.recurring || []);
-                setBudgetLimits(cloudData.limits || []);
-                if (cloudData.overallBudget) setOverallBudget(cloudData.overallBudget);
-                if (cloudData.categories) setCategories(cloudData.categories);
-            }
-        }
-    });
-    return () => unsubscribe();
-  }, [isLoaded]);
-
-  useEffect(() => {
     if (isLoaded) {
       saveTransactions(transactions);
       saveRecurringTransactions(recurringTransactions);
@@ -217,17 +191,8 @@ const App: React.FC = () => {
       saveOverallBudget(overallBudget);
       saveStoredCategories(categories);
       saveTheme(theme);
-      if (user) {
-         saveToCloud(user.uid, {
-             transactions,
-             recurring: recurringTransactions,
-             limits: budgetLimits,
-             overallBudget,
-             categories
-         });
-      }
     }
-  }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded, user]);
+  }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded]);
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
@@ -372,7 +337,6 @@ const App: React.FC = () => {
         {renderView()}
       </main>
       
-      {/* Visual Indicator for Swipe Back */}
       {isDragging && swipeOffset > 10 && (
           <div className="fixed inset-y-0 left-0 w-1 bg-brand-500/30 blur-sm pointer-events-none z-[150]" />
       )}

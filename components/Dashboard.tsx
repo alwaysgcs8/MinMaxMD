@@ -104,24 +104,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
-      <div className="flex-1 overflow-y-auto no-scrollbar scroll-y-only pb-40">
-        <header className="px-6 pt-safe pb-4 flex justify-between items-center bg-transparent border-b border-white/10">
-          <div className="flex items-center py-1.5">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
-              MinMax<span className="text-brand-500">MD</span>
-            </h1>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => onNavigate(View.BUDGET)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
-              <Target size={20} />
-            </button>
-            <button onClick={() => onNavigate(View.SETTINGS)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
-              <SettingsIcon size={20} />
-            </button>
-          </div>
-        </header>
+    <div className="flex flex-col min-h-[100svh]">
+      <header className="px-6 pt-safe pb-4 flex justify-between items-center bg-transparent border-b border-white/10 shrink-0">
+        <div className="flex items-center py-1.5">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
+            MinMax<span className="text-brand-500">MD</span>
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => onNavigate(View.BUDGET)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
+            <Target size={20} />
+          </button>
+          <button onClick={() => onNavigate(View.SETTINGS)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
+            <SettingsIcon size={20} />
+          </button>
+        </div>
+      </header>
 
+      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe">
         <div className="h-4"></div>
         
         {/* Timeframe Selector */}
@@ -248,7 +248,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 };

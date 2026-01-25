@@ -74,18 +74,18 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-transparent animate-in fade-in duration-700 overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-6 py-4 no-scrollbar scroll-y-only">
-        <header className="pt-safe pb-4 bg-transparent border-b border-white/10">
-          <div className="flex items-center gap-3 mb-1">
-              <div className="bg-gradient-to-br from-brand-400 to-purple-500 p-2 rounded-xl text-white shadow-lg shadow-brand-500/30">
-                  <Bot size={24} />
-              </div>
-              <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">AI Advisor</h1>
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Smart insights for your wallet</p>
-        </header>
+    <div className="flex flex-col min-h-[100svh]">
+      <header className="px-6 pt-safe pb-4 bg-transparent border-b border-white/10 shrink-0">
+        <div className="flex items-center gap-3 mb-1">
+            <div className="bg-gradient-to-br from-brand-400 to-purple-500 p-2 rounded-xl text-white shadow-lg shadow-brand-500/30">
+                <Bot size={24} />
+            </div>
+            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">AI Advisor</h1>
+        </div>
+        <p className="text-slate-500 dark:text-slate-400 font-medium">Smart insights for your wallet</p>
+      </header>
 
+      <main className="flex-1 overflow-y-auto scroll-y-only pb-12 pb-safe px-6">
         <div className="h-4"></div>
 
         {!hasFetched && !loading && (
@@ -117,9 +117,9 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
                 {renderMarkdown(analysis)}
             </div>
         )}
-      </div>
+      </main>
 
-      <div className="px-6 pt-6 pb-32">
+      <footer className="px-6 pt-4 pb-32 shrink-0">
         <button
             onClick={fetchAnalysis}
             disabled={loading}
@@ -139,7 +139,7 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
                 )}
             </span>
         </button>
-      </div>
+      </footer>
     </div>
   );
 };

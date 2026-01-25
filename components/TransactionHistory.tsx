@@ -56,21 +56,21 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
   }, [filteredTransactions, sortKey]);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-transparent">
-      <div className="flex-1 space-y-6 overflow-y-auto no-scrollbar scroll-y-only px-6 pb-32">
-        <header className="pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10">
-          <div>
-              <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">History</h1>
-              <p className="text-slate-500 dark:text-slate-400 font-medium">Your spending timeline</p>
-          </div>
-          <button 
-              onClick={() => onNavigate(View.SETTINGS)}
-              className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95 mt-1"
-          >
-              <SettingsIcon size={22} />
-          </button>
-        </header>
+    <div className="flex flex-col min-h-[100svh]">
+      <header className="px-6 pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10 shrink-0">
+        <div>
+            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">History</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Your spending timeline</p>
+        </div>
+        <button 
+            onClick={() => onNavigate(View.SETTINGS)}
+            className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95 mt-1"
+        >
+            <SettingsIcon size={22} />
+        </button>
+      </header>
 
+      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe px-6">
         <div className="h-4"></div>
 
         <div className="space-y-3 shrink-0">
@@ -121,6 +121,8 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
           </div>
         </div>
 
+        <div className="h-6"></div>
+
         {Object.keys(groupedTransactions).length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400">
                 <Filter size={48} className="mb-4 opacity-20" />
@@ -128,7 +130,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
             </div>
         ) : (
             Object.entries(groupedTransactions).map(([groupTitle, txs]) => (
-                <div key={groupTitle} className="space-y-3">
+                <div key={groupTitle} className="space-y-3 mb-6">
                     <h3 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] sticky top-0 bg-transparent backdrop-blur-sm py-2 z-10">
                         {groupTitle}
                     </h3>
@@ -161,7 +163,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
                 </div>
             ))
         )}
-      </div>
+      </main>
     </div>
   );
 };

@@ -6,7 +6,7 @@
     <title>MinMaxMD</title>
     
     <!-- Increment version to force PWA manifest refresh -->
-    <link rel="manifest" href="/manifest.json?v=25" />
+    <link rel="manifest" href="/manifest.json?v=29" />
     
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
@@ -172,11 +172,13 @@
         height: env(safe-area-inset-bottom);
         pointer-events: none;
         z-index: 999999;
-        /* NOT TRANSPARENT */
+
+        /* Paint it — do NOT leave transparent */
         background: var(--app-grad-light) !important;
-        /* Optional: keep blur effect, but on top of a painted background */
-        backdrop-filter: blur(20px);
+
+        /* optional: keep blur */
         -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
       }
 
       html.dark #ios-safearea-filler {
@@ -206,11 +208,7 @@
         "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
         "recharts": "https://esm.sh/recharts@^3.6.0",
         "vite": "https://esm.sh/vite@^7.3.0",
-        "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
-        "firebase/app": "https://esm.sh/firebase@10.8.1/app",
-        "firebase/auth": "https://esm.sh/firebase@10.8.1/auth",
-        "firebase/firestore": "https://esm.sh/firebase@10.8.1/firestore",
-        "firebase/": "https://esm.sh/firebase@^12.7.0/"
+        "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
       }
     }
     </script>

@@ -43,29 +43,29 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-700">
-      <div className="flex-1 overflow-y-auto no-scrollbar scroll-y-only px-6 pb-40 pt-4">
-        <header className="pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10">
-          <div className="flex items-center gap-3 mb-1">
-              <div className="bg-gradient-to-br from-indigo-500 to-vibrant-purple p-2.5 rounded-2xl text-white shadow-lg">
-                  <Repeat size={24} />
-              </div>
-              <div>
-                  <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Subscriptions</h1>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Manage your recurring billing</p>
-              </div>
-          </div>
-          <button 
-            onClick={onAddClick}
-            className="p-3 mt-1 bg-vibrant-purple text-white rounded-full shadow-lg shadow-purple-500/30 active:scale-95 transition-all"
-          >
-            <Plus size={22} />
-          </button>
-        </header>
+    <div className="flex flex-col min-h-[100svh]">
+      <header className="px-6 pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10 shrink-0">
+        <div className="flex items-center gap-3 mb-1">
+            <div className="bg-gradient-to-br from-indigo-500 to-vibrant-purple p-2.5 rounded-2xl text-white shadow-lg">
+                <Repeat size={24} />
+            </div>
+            <div>
+                <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Subscriptions</h1>
+                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Manage your recurring billing</p>
+            </div>
+        </div>
+        <button 
+          onClick={onAddClick}
+          className="p-3 mt-1 bg-vibrant-purple text-white rounded-full shadow-lg shadow-purple-500/30 active:scale-95 transition-all"
+        >
+          <Plus size={22} />
+        </button>
+      </header>
 
+      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe px-6">
         <div className="h-4"></div>
 
-        <div className="mb-8 shrink-0">
+        <div className="mb-8">
           <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 p-8 shadow-2xl">
               <div className="absolute top-0 right-0 w-40 h-40 bg-vibrant-purple/20 blur-[60px] rounded-full"></div>
               <div className="relative z-10 flex flex-col gap-6">
@@ -139,7 +139,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

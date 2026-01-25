@@ -410,29 +410,29 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
   );
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-700">
-      <div className="flex-1 px-6 space-y-6 pb-32 overflow-y-auto no-scrollbar scroll-y-only">
-        <header className="pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10">
-          <div>
-              <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
-              <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>
-          </div>
-          <div className="flex gap-2 pt-1">
-              <button 
-                  onClick={() => setIsCustomizing(true)}
-                  className="p-3 bg-brand-500 text-white rounded-full shadow-lg shadow-brand-500/30 flex items-center justify-center active:scale-95"
-              >
-                  <Layout size={22} />
-              </button>
-              <button 
-                  onClick={() => onNavigate(View.SETTINGS)}
-                  className="p-3 bg-white/50 dark:bg-white/10 rounded-full border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95"
-              >
-                  <SettingsIcon size={22} />
-              </button>
-          </div>
-        </header>
+    <div className="flex flex-col min-h-[100svh]">
+      <header className="px-6 pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10 shrink-0">
+        <div>
+            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>
+        </div>
+        <div className="flex gap-2 pt-1">
+            <button 
+                onClick={() => setIsCustomizing(true)}
+                className="p-3 bg-brand-500 text-white rounded-full shadow-lg shadow-brand-500/30 flex items-center justify-center active:scale-95"
+            >
+                <Layout size={22} />
+            </button>
+            <button 
+                onClick={() => onNavigate(View.SETTINGS)}
+                className="p-3 bg-white/50 dark:bg-white/10 rounded-full border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95"
+            >
+                <SettingsIcon size={22} />
+            </button>
+        </div>
+      </header>
 
+      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe px-6">
         <div className="h-4"></div>
         {activeWidgets.length === 0 && (
              <div className="text-center py-12 text-slate-400 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
@@ -440,12 +440,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                 <button onClick={() => setIsCustomizing(true)} className="mt-2 text-brand-500 font-bold hover:underline">Customize Dashboard</button>
              </div>
         )}
-        {activeWidgets.includes(AnalyticsWidgetType.PROJECTIONS) && renderProjections()}
-        {activeWidgets.includes(AnalyticsWidgetType.EXPENSE_TREND) && renderExpenseTrend()}
-        {activeWidgets.includes(AnalyticsWidgetType.SPENDING_PIE) && renderSpendingPie()}
-        {activeWidgets.includes(AnalyticsWidgetType.INCOME_VS_EXPENSE) && renderIncomeVsExpense()}
-        {activeWidgets.includes(AnalyticsWidgetType.BUDGET_LIMITS) && renderBudgetLimits()}
-      </div>
+        <div className="space-y-6">
+          {activeWidgets.includes(AnalyticsWidgetType.PROJECTIONS) && renderProjections()}
+          {activeWidgets.includes(AnalyticsWidgetType.EXPENSE_TREND) && renderExpenseTrend()}
+          {activeWidgets.includes(AnalyticsWidgetType.SPENDING_PIE) && renderSpendingPie()}
+          {activeWidgets.includes(AnalyticsWidgetType.INCOME_VS_EXPENSE) && renderIncomeVsExpense()}
+          {activeWidgets.includes(AnalyticsWidgetType.BUDGET_LIMITS) && renderBudgetLimits()}
+        </div>
+      </main>
 
       {isCustomizing && (
         <>
