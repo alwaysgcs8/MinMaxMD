@@ -63,7 +63,6 @@
     
     <script>
       function setAppHeight() {
-        // Use visualViewport when available (best on iOS), fallback to innerHeight
         const h = (window.visualViewport?.height || window.innerHeight);
         document.documentElement.style.setProperty('--app-height', `${h}px`);
       }
@@ -82,7 +81,7 @@
         --bg-dark: #020617;
       }
 
-      /* 1) Make sure the document itself is never white */
+      /* Base layout stability */
       html, body {
         height: 100%;
         width: 100%;
@@ -95,22 +94,6 @@
         background: var(--bg-dark);
       }
 
-      /* 2) Create a fixed "underlay" that covers overscroll/bounce areas */
-      body::before {
-        content: "";
-        position: fixed;
-        z-index: -9999;
-        left: 0;
-        right: 0;
-        top: -100vh;
-        bottom: -100vh;
-        background: var(--bg-light);
-      }
-
-      html.dark body::before {
-        background: var(--bg-dark);
-      }
-
       body {
         position: relative !important;
         overflow: hidden;
@@ -119,28 +102,7 @@
         overscroll-behavior-x: none;
       }
 
-      /* Use the measured height for app root and background */
-      #app-background,
-      #root {
-        height: var(--app-height);
-      }
-
-      /* Force-paint full screen */
-      #app-background {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100%;
-        z-index: 0;
-        pointer-events: none;
-        overflow: hidden;
-        background: var(--bg-light);
-      }
-
-      html.dark #app-background {
-        background: var(--bg-dark);
-      }
-
+      /* Root container setup */
       #root {
         position: relative;
         width: 100%;
@@ -152,6 +114,7 @@
         padding-bottom: env(safe-area-inset-bottom);
       }
 
+      /* Shared background blobs */
       .bg-blob {
         position: absolute;
         width: 100vmax;
@@ -171,6 +134,7 @@
       .dark .blob-2 { background: #6b21a8; }
       .dark .blob-3 { background: #9f1239; }
 
+      /* Safe area utilities */
       .pt-safe-top {
         padding-top: max(3.5rem, env(safe-area-inset-top) + 1.5rem);
       }
@@ -193,10 +157,7 @@
         border: 1px solid rgba(255, 255, 255, 0.05);
       }
 
-      .neon-border-income { border-color: rgba(52, 211, 153, 0.5); box-shadow: 0 0 10px rgba(52, 211, 153, 0.15); }
-      .neon-border-expense { border-color: rgba(251, 113, 133, 0.5); box-shadow: 0 0 10px rgba(251, 113, 133, 0.15); }
-
-      /* Utility to lock vertical scrolling */
+      /* Scrolling locks */
       .scroll-y-only {
         overflow-y: auto;
         overflow-x: hidden;
@@ -207,6 +168,48 @@
         overflow-x: auto;
         overflow-y: hidden;
         touch-action: pan-x;
+      }
+
+      /* ========================================================== */
+      /* NUCLEAR FIX: Background Seam & Overscroll Stability        */
+      /* ========================================================== */
+
+      /* Always paint something non-white behind everything */
+      html, body {
+        background: var(--bg-light) !important;
+      }
+
+      html.dark, html.dark body {
+        background: var(--bg-dark) !important;
+      }
+
+      /* Overdraw past the viewport to eliminate iOS paint seams */
+      #app-background {
+        position: fixed !important;
+        inset: -200px !important;          /* <-- key: extend beyond edges */
+        background: var(--bg-light) !important;
+        transform: translateZ(0) !important; /* force compositing */
+        will-change: transform;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      html.dark #app-background {
+        background: var(--bg-dark) !important;
+      }
+
+      /* Make sure root never reveals the page behind it */
+      #root {
+        height: var(--app-height) !important;
+        min-height: 100% !important;
+        background: transparent !important;
+        transform: translateZ(0) !important; /* avoid seams on top layer too */
+      }
+
+      /* IMPORTANT: do NOT keep body fixed on iOS */
+      body {
+        position: relative !important;
+        overflow: hidden !important;
       }
     </style>
     

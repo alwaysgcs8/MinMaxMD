@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Transaction, TransactionType, BudgetLimit, View, AnalyticsWidgetType } from '../types';
 import { getCategoryColor } from '../constants';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LineChart, Line, AreaChart, Area } from 'recharts';
-import { Calendar, TrendingUp, AlertTriangle, Settings as SettingsIcon, Layout, Plus, X, GripHorizontal, Check } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, AreaChart, Area } from 'recharts';
+import { Calendar, TrendingUp, AlertTriangle, Settings as SettingsIcon, Layout, X, Check } from 'lucide-react';
 import { getStoredWidgets, saveStoredWidgets } from '../services/storageService';
 
 interface AnalyticsProps {
@@ -29,8 +29,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
     setActiveWidgets(newWidgets);
     saveStoredWidgets(newWidgets);
   };
-
-  // --- DATA PROCESSING HOOKS ---
 
   const categoryData = useMemo(() => {
     const expenses = transactions.filter(t => t.type === TransactionType.EXPENSE);
@@ -137,8 +135,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
   const trendData = useMemo(() => {
     const data: Record<string, { date: string; amount: number; displayDate: string }> = {};
     const now = new Date();
-    
-    // Helper to get consistent date key (midnight)
     const toDateKey = (d: Date) => {
         const n = new Date(d);
         n.setHours(0,0,0,0);
@@ -146,7 +142,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
     };
 
     if (trendTimeframe === 'day') {
-        // Last 30 days
         for(let i=29; i>=0; i--) {
             const d = new Date();
             d.setDate(now.getDate() - i);
@@ -158,11 +153,9 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
             };
         }
     } else if (trendTimeframe === 'week') {
-        // Last 12 weeks
         const currentDay = now.getDay();
         const startOfWeek = new Date(now);
         startOfWeek.setDate(now.getDate() - currentDay);
-        
         for(let i=11; i>=0; i--) {
             const d = new Date(startOfWeek);
             d.setDate(d.getDate() - (i * 7));
@@ -174,7 +167,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
             };
         }
     } else if (trendTimeframe === 'month') {
-        // Last 12 months
         for(let i=11; i>=0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const key = `${d.getFullYear()}-${d.getMonth()}`;
@@ -185,7 +177,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
             };
         }
     } else if (trendTimeframe === 'year') {
-        // Last 5 years
         for(let i=4; i>=0; i--) {
             const d = new Date(now.getFullYear() - i, 0, 1);
             const key = `${d.getFullYear()}-${d.getMonth()}`;
@@ -201,23 +192,15 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
         if(t.type === TransactionType.EXPENSE) {
             const d = new Date(t.date);
             let key = '';
-
-            if (trendTimeframe === 'day') {
-                key = toDateKey(d);
-            } else if (trendTimeframe === 'week') {
+            if (trendTimeframe === 'day') key = toDateKey(d);
+            else if (trendTimeframe === 'week') {
                 const day = d.getDay();
                 const start = new Date(d);
                 start.setDate(d.getDate() - day);
                 key = toDateKey(start);
-            } else if (trendTimeframe === 'month') {
-                key = `${d.getFullYear()}-${d.getMonth()}`;
-            } else if (trendTimeframe === 'year') {
-                key = `${d.getFullYear()}`;
-            }
-
-            if(data[key]) {
-                data[key].amount += t.amount;
-            }
+            } else if (trendTimeframe === 'month') key = `${d.getFullYear()}-${d.getMonth()}`;
+            else if (trendTimeframe === 'year') key = `${d.getFullYear()}`;
+            if(data[key]) data[key].amount += t.amount;
         }
     });
 
@@ -229,22 +212,19 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
   };
 
   const getAxisInterval = () => {
-    // Interval = number of ticks to skip between labels
     switch (trendTimeframe) {
-        case 'day': return 5; // 30 items -> show ~6 labels
-        case 'week': return 1; // 12 items -> show 6 labels
-        case 'month': return 1; // 12 items -> show 6 labels
-        case 'year': return 0; // 5 items -> show 5 labels
+        case 'day': return 5;
+        case 'week': return 1;
+        case 'month': return 1;
+        case 'year': return 0;
         default: return 0;
     }
   };
 
-  // --- RENDER FUNCTIONS FOR WIDGETS ---
-
   const renderProjections = () => (
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-5 rounded-[1.8rem] border border-white/50 dark:border-white/10 shadow-glass relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-             <div className="absolute -right-4 -top-4 p-3 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
+        <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-5 rounded-[1.8rem] border border-white/50 dark:border-white/10 shadow-glass relative overflow-hidden group">
+             <div className="absolute -right-4 -top-4 p-3 opacity-10 rotate-12">
                 <Calendar size={80} className="text-brand-600 dark:text-cyan-400" />
              </div>
              <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Month Projection</p>
@@ -252,7 +232,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
              <div className="mt-4 flex items-center gap-1.5">
                 <div className="h-2 flex-1 bg-white/50 dark:bg-white/10 rounded-full overflow-hidden border border-white/20 dark:border-white/5">
                     <div 
-                        className="h-full bg-brand-500 dark:bg-cyan-500 rounded-full shadow-[0_0_10px_rgba(14,165,233,0.5)] dark:shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
+                        className="h-full bg-brand-500 dark:bg-cyan-500 rounded-full" 
                         style={{ width: `${Math.min(100, (projections.month.current / projections.month.projected) * 100)}%`}}
                     ></div>
                 </div>
@@ -263,8 +243,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
              </p>
         </div>
 
-        <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-5 rounded-[1.8rem] border border-white/50 dark:border-white/10 shadow-glass relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-             <div className="absolute -right-4 -top-4 p-3 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
+        <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-5 rounded-[1.8rem] border border-white/50 dark:border-white/10 shadow-glass relative overflow-hidden group">
+             <div className="absolute -right-4 -top-4 p-3 opacity-10 rotate-12">
                 <TrendingUp size={80} className="text-purple-600 dark:text-purple-400" />
              </div>
              <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Year Projection</p>
@@ -272,7 +252,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
              <div className="mt-4 flex items-center gap-1.5">
                 <div className="h-2 flex-1 bg-white/50 dark:bg-white/10 rounded-full overflow-hidden border border-white/20 dark:border-white/5">
                     <div 
-                        className="h-full bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" 
+                        className="h-full bg-purple-500 rounded-full" 
                         style={{ width: `${Math.min(100, (projections.year.current / projections.year.projected) * 100)}%`}}
                     ></div>
                 </div>
@@ -292,13 +272,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
             <div className="space-y-4">
                 {budgetStatus.map((status) => {
                     const isOverLimit = status.spent > status.limit;
-                    const barColor = isOverLimit ? 'bg-red-500' : 'bg-brand-500 dark:bg-cyan-500';
-                    const textColor = isOverLimit ? 'text-red-600 dark:text-red-400' : 'text-slate-600 dark:text-slate-300';
-                    
                     return (
                         <div key={status.category}>
                             <div className="flex justify-between text-sm mb-1">
-                                <span className={`font-semibold ${textColor} flex items-center gap-1`}>
+                                <span className={`font-semibold flex items-center gap-1 ${isOverLimit ? 'text-red-600 dark:text-red-400' : 'text-slate-600 dark:text-slate-300'}`}>
                                     {status.category}
                                     {isOverLimit && <AlertTriangle size={12} className="text-red-500" />}
                                 </span>
@@ -308,7 +285,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                             </div>
                             <div className="h-2 w-full bg-white/50 dark:bg-white/10 rounded-full overflow-hidden">
                                 <div 
-                                    className={`h-full rounded-full transition-all duration-1000 ${barColor} ${isOverLimit ? 'shadow-[0_0_10px_rgba(239,68,68,0.6)]' : ''}`} 
+                                    className={`h-full rounded-full transition-all duration-1000 ${isOverLimit ? 'bg-red-500' : 'bg-brand-500 dark:bg-cyan-500'}`} 
                                     style={{ width: `${Math.min(100, status.percentage)}%` }}
                                 ></div>
                             </div>
@@ -317,7 +294,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                 })}
             </div>
         ) : (
-            <p className="text-slate-400 text-sm text-center py-4">No budget limits set. Go to Budget to add some.</p>
+            <p className="text-slate-400 text-sm text-center py-4">No budget limits set.</p>
         )}
       </div>
   );
@@ -344,21 +321,19 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                     </Pie>
                     <Tooltip 
                         formatter={(value: number) => `$${value.toFixed(2)}`}
-                        contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(20, 20, 30, 0.8)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)', color: '#fff' }}
+                        contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(20, 20, 30, 0.8)', backdropFilter: 'blur(10px)', color: '#fff' }}
                         itemStyle={{ color: '#fff', fontWeight: 600 }}
                     />
                     </PieChart>
                 </ResponsiveContainer>
             ) : (
-                <div className="h-full flex items-center justify-center text-slate-400">
-                    No expense data yet
-                </div>
+                <div className="h-full flex items-center justify-center text-slate-400">No expense data yet</div>
             )}
         </div>
         <div className="grid grid-cols-2 gap-3 mt-4">
             {categoryData.slice(0, 4).map(item => (
                 <div key={item.name} className="flex items-center gap-2 text-sm bg-white/30 dark:bg-white/5 p-2 rounded-xl border border-white/20 dark:border-white/5">
-                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: getCategoryColor(item.name) }}></div>
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getCategoryColor(item.name) }}></div>
                     <span className="text-slate-600 dark:text-slate-300 truncate flex-1 font-medium">{item.name}</span>
                     <span className="font-bold text-slate-800 dark:text-white">${item.value.toFixed(0)}</span>
                 </div>
@@ -378,7 +353,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
                     <Tooltip 
                          cursor={{ fill: 'rgba(255,255,255,0.05)', radius: 8 }}
-                         contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(20, 20, 30, 0.8)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)', color: '#fff' }}
+                         contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(20, 20, 30, 0.8)', backdropFilter: 'blur(10px)', color: '#fff' }}
                     />
                     <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                     <Bar dataKey="income" name="Income" fill="#10b981" radius={[6, 6, 6, 6]} barSize={14} />
@@ -392,8 +367,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
   const renderExpenseTrend = () => (
       <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Expense Trend</h3>
-        
-        {/* Timeframe Toggle */}
         <div className="flex bg-slate-100 dark:bg-slate-700/50 p-1 rounded-xl mb-4">
             {(['day', 'week', 'month', 'year'] as const).map((tf) => (
                 <button
@@ -430,7 +403,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                     />
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
                     <Tooltip 
-                         contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(20, 20, 30, 0.8)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)', color: '#fff' }}
+                         contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(20, 20, 30, 0.8)', backdropFilter: 'blur(10px)', color: '#fff' }}
                          labelStyle={{ color: '#fff' }}
                     />
                     <Area type="monotone" dataKey="amount" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorAmount)" strokeWidth={3} />
@@ -441,8 +414,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
   );
 
   return (
-    <div className="pb-32 space-y-6 animate-in fade-in duration-700 relative">
-      <div className="flex justify-between items-start px-6 pt-safe-top">
+    <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-700">
+      <div className="shrink-0 flex justify-between items-start px-6 pt-safe-top pb-4">
         <div>
             <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>
@@ -450,28 +423,26 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
         <div className="flex gap-2">
             <button 
                 onClick={() => setIsCustomizing(true)}
-                className="p-3 bg-brand-500 text-white rounded-full hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/30 flex items-center justify-center"
-                aria-label="Customize Dashboard"
+                className="p-3 bg-brand-500 text-white rounded-full shadow-lg shadow-brand-500/30 flex items-center justify-center"
             >
                 <Layout size={22} />
             </button>
             <button 
                 onClick={() => onNavigate(View.SETTINGS)}
-                className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300"
+                className="p-3 bg-white/50 dark:bg-white/10 rounded-full border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300"
             >
                 <SettingsIcon size={22} />
             </button>
         </div>
       </div>
 
-      <div className="px-6 space-y-6">
+      <div className="flex-1 px-6 space-y-6 no-scrollbar pb-32 scroll-y-only">
         {activeWidgets.length === 0 && (
-             <div className="text-center py-12 text-slate-400 dark:text-slate-500 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+             <div className="text-center py-12 text-slate-400 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                 <p>No widgets active.</p>
                 <button onClick={() => setIsCustomizing(true)} className="mt-2 text-brand-500 font-bold hover:underline">Customize Dashboard</button>
              </div>
         )}
-        
         {activeWidgets.includes(AnalyticsWidgetType.PROJECTIONS) && renderProjections()}
         {activeWidgets.includes(AnalyticsWidgetType.EXPENSE_TREND) && renderExpenseTrend()}
         {activeWidgets.includes(AnalyticsWidgetType.SPENDING_PIE) && renderSpendingPie()}
@@ -479,14 +450,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
         {activeWidgets.includes(AnalyticsWidgetType.BUDGET_LIMITS) && renderBudgetLimits()}
       </div>
 
-      {/* Customization Sheet */}
       {isCustomizing && (
         <>
-            <div 
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity"
-                onClick={() => setIsCustomizing(false)}
-            />
-            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 z-[70] rounded-t-[2.5rem] p-6 pb-safe-bottom shadow-2xl animate-in slide-in-from-bottom duration-300 border-t border-white/10">
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" onClick={() => setIsCustomizing(false)} />
+            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 z-[70] rounded-t-[2.5rem] p-6 pb-safe-bottom shadow-2xl border-t border-white/10 animate-in slide-in-from-bottom duration-300">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Layout className="text-brand-500" /> Customize Dashboard
@@ -495,7 +462,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                         <X size={20} />
                     </button>
                 </div>
-                
                 <div className="space-y-3 max-h-[60vh] overflow-y-auto no-scrollbar pb-6">
                     {[
                         { type: AnalyticsWidgetType.PROJECTIONS, label: "Projections", desc: "Monthly & Yearly linear forecast", icon: Calendar },
@@ -507,11 +473,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
                         <button 
                             key={widget.type}
                             onClick={() => toggleWidget(widget.type)}
-                            className={`w-full flex items-center p-4 rounded-2xl border transition-all ${
-                                activeWidgets.includes(widget.type) 
-                                    ? 'bg-brand-500/10 border-brand-500 dark:border-brand-500/50' 
-                                    : 'bg-slate-50 dark:bg-slate-800/50 border-transparent'
-                            }`}
+                            className={`w-full flex items-center p-4 rounded-2xl border transition-all ${activeWidgets.includes(widget.type) ? 'bg-brand-500/10 border-brand-500' : 'bg-slate-50 dark:bg-slate-800/50 border-transparent'}`}
                         >
                             <div className={`p-3 rounded-xl mr-4 ${activeWidgets.includes(widget.type) ? 'bg-brand-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}`}>
                                 <widget.icon size={20} />
