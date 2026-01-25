@@ -100,7 +100,7 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
               `}
               required
             />
-            <div className="text-slate-400 dark:text-slate-600 font-bold text-xl mt-4 opacity-50 uppercase tracking-widest">$ USD</div>
+            <div className="text-slate-400 dark:text-slate-600 font-bold text-xl mt-4 opacity-50 uppercase tracking-widest">$</div>
           </div>
         </div>
 

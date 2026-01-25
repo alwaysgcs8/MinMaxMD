@@ -19,6 +19,7 @@ import { Settings } from './components/Settings';
 import { AiAdvisor } from './components/AiAdvisor';
 import { TransactionHistory } from './components/TransactionHistory';
 import { EditTransaction } from './components/EditTransaction';
+import { EditSubscription } from './components/EditSubscription';
 import { Budget } from './components/Budget';
 import { Subscriptions } from './components/Subscriptions';
 
@@ -32,7 +33,11 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [selectedRecurringTransaction, setSelectedRecurringTransaction] = useState<RecurringTransaction | null>(null);
   
+  // Track if we should force recurring when entering the ADD view
+  const [isAddingSubscription, setIsAddingSubscription] = useState(false);
+
   // Auth state
   const [user, setUser] = useState<User | null>(null);
 
@@ -207,7 +212,7 @@ const App: React.FC = () => {
     }
   }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded, user]);
 
-  // Handle scrolling for Nav visibility - improved for internal scrollable divs
+  // Handle scrolling for Nav visibility
   useEffect(() => {
     const handleScroll = (e: Event) => {
         const target = e.target as HTMLElement;
@@ -265,6 +270,7 @@ const App: React.FC = () => {
         setRecurringTransactions(prev => [...prev, newRecurring]);
     }
 
+    setIsAddingSubscription(false);
     setCurrentView(View.DASHBOARD);
   };
 
@@ -272,6 +278,12 @@ const App: React.FC = () => {
     setTransactions(prev => prev.map(t => t.id === updatedTx.id ? updatedTx : t));
     setSelectedTransaction(null);
     setCurrentView(View.HISTORY);
+  };
+
+  const handleUpdateRecurring = (updatedRT: RecurringTransaction) => {
+    setRecurringTransactions(prev => prev.map(rt => rt.id === updatedRT.id ? updatedRT : rt));
+    setSelectedRecurringTransaction(null);
+    setCurrentView(View.SUBSCRIPTIONS);
   };
 
   const handleDeleteTransaction = (id: string) => {
@@ -282,6 +294,10 @@ const App: React.FC = () => {
 
   const handleDeleteRecurring = (id: string) => {
     setRecurringTransactions(prev => prev.filter(t => t.id !== id));
+    if (selectedRecurringTransaction?.id === id) {
+        setSelectedRecurringTransaction(null);
+        setCurrentView(View.SUBSCRIPTIONS);
+    }
   };
 
   const handleSelectTransaction = (transaction: Transaction) => {
@@ -289,16 +305,29 @@ const App: React.FC = () => {
     setCurrentView(View.EDIT);
   };
 
+  const handleSelectRecurring = (rt: RecurringTransaction) => {
+    setSelectedRecurringTransaction(rt);
+    setCurrentView(View.EDIT_SUBSCRIPTION);
+  };
+
+  const navigateToAdd = (forceSub = false) => {
+    setIsAddingSubscription(forceSub);
+    setCurrentView(View.ADD);
+  };
+
   const renderView = () => {
     switch (currentView) {
       case View.DASHBOARD:
-        return <Dashboard transactions={transactions} onNavigate={setCurrentView} />;
+        return <Dashboard transactions={transactions} onNavigate={setCurrentView} onSelectTransaction={handleSelectTransaction} />;
       case View.ADD:
         return <AddTransaction 
             categories={categories} 
             onAdd={handleAddTransaction} 
-            onCancel={() => setCurrentView(View.DASHBOARD)} 
-            onNavigateSubscriptions={() => setCurrentView(View.SUBSCRIPTIONS)}
+            onCancel={() => {
+                setIsAddingSubscription(false);
+                setCurrentView(View.DASHBOARD);
+            }} 
+            forceRecurring={isAddingSubscription}
         />;
       case View.ANALYTICS:
         return <Analytics transactions={transactions} budgetLimits={budgetLimits} onNavigate={setCurrentView} />;
@@ -313,6 +342,15 @@ const App: React.FC = () => {
             onDelete={handleDeleteTransaction}
             onCancel={() => setCurrentView(View.HISTORY)} 
         />;
+      case View.EDIT_SUBSCRIPTION:
+        if (!selectedRecurringTransaction) return <Subscriptions recurringTransactions={recurringTransactions} onDelete={handleDeleteRecurring} onEdit={handleSelectRecurring} onNavigate={setCurrentView} onAddClick={() => navigateToAdd(true)} />;
+        return <EditSubscription 
+            recurringTransaction={selectedRecurringTransaction} 
+            categories={categories}
+            onUpdate={handleUpdateRecurring} 
+            onDelete={handleDeleteRecurring}
+            onCancel={() => setCurrentView(View.SUBSCRIPTIONS)} 
+        />;
       case View.BUDGET:
         return <Budget 
             overallBudget={overallBudget}
@@ -326,7 +364,9 @@ const App: React.FC = () => {
         return <Subscriptions 
             recurringTransactions={recurringTransactions}
             onDelete={handleDeleteRecurring}
+            onEdit={handleSelectRecurring}
             onNavigate={setCurrentView}
+            onAddClick={() => navigateToAdd(true)}
         />;
       case View.AI_ADVISOR:
         return <AiAdvisor transactions={transactions} />;
@@ -339,7 +379,7 @@ const App: React.FC = () => {
             onUpdateCategories={setCategories}
         />;
       default:
-        return <Dashboard transactions={transactions} onNavigate={setCurrentView} />;
+        return <Dashboard transactions={transactions} onNavigate={setCurrentView} onSelectTransaction={handleSelectTransaction} />;
     }
   };
 
@@ -352,7 +392,7 @@ const App: React.FC = () => {
       </main>
 
       {/* Navigation */}
-      {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && currentView !== View.BUDGET && (
+      {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && currentView !== View.EDIT_SUBSCRIPTION && currentView !== View.BUDGET && (
         <BottomNav 
             currentView={currentView} 
             onViewChange={setCurrentView} 

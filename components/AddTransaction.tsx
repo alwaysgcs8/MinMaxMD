@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
-import { Transaction, TransactionType, RecurrenceFrequency, View } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Transaction, TransactionType, RecurrenceFrequency } from '../types';
 import { Button } from './Button';
-import { X, Repeat, Check, Sparkles, Calendar, Clock, ArrowRight } from 'lucide-react';
+import { X, Check, Calendar, Clock } from 'lucide-react';
 import { getCategoryColor, getCategoryIcon } from '../constants';
 
 interface AddTransactionProps {
   categories: string[];
   onAdd: (data: { transaction: Omit<Transaction, 'id'>, frequency: RecurrenceFrequency }) => void;
   onCancel: () => void;
-  onNavigateSubscriptions?: () => void;
+  forceRecurring?: boolean;
 }
 
-export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAdd, onCancel, onNavigateSubscriptions }) => {
+export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAdd, onCancel, forceRecurring = false }) => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>(categories[0] || 'Other');
   const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
-  const [isRecurring, setIsRecurring] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(forceRecurring);
   
   const [date, setDate] = useState(() => {
     const now = new Date();
@@ -24,6 +24,12 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
   });
   
   const [frequency, setFrequency] = useState<RecurrenceFrequency>(RecurrenceFrequency.MONTHLY);
+
+  useEffect(() => {
+    if (forceRecurring) {
+        setIsRecurring(true);
+    }
+  }, [forceRecurring]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,32 +88,34 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
 
       <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto px-8 pb-32 space-y-8 no-scrollbar">
         <div className="space-y-4">
-            <div className="glass-panel p-1.5 rounded-[1.8rem] flex relative overflow-hidden">
-                <button
-                    type="button"
-                    onClick={() => setType(TransactionType.EXPENSE)}
-                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-500 z-10 ${
-                    type === TransactionType.EXPENSE ? 'bg-slate-800 text-white shadow-xl' : 'text-slate-500'
-                    }`}
-                >
-                    Expense
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setType(TransactionType.INCOME);
-                        setCategory('Income');
-                        setIsRecurring(false);
-                    }}
-                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-500 z-10 ${
-                    type === TransactionType.INCOME ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30' : 'text-slate-500'
-                    }`}
-                >
-                    Income
-                </button>
-            </div>
+            {!forceRecurring && (
+                <div className="glass-panel p-1.5 rounded-[1.8rem] flex relative overflow-hidden">
+                    <button
+                        type="button"
+                        onClick={() => setType(TransactionType.EXPENSE)}
+                        className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-500 z-10 ${
+                        type === TransactionType.EXPENSE ? 'bg-slate-800 text-white shadow-xl' : 'text-slate-500'
+                        }`}
+                    >
+                        Expense
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setType(TransactionType.INCOME);
+                            setCategory('Income');
+                            setIsRecurring(false);
+                        }}
+                        className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-500 z-10 ${
+                        type === TransactionType.INCOME ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30' : 'text-slate-500'
+                        }`}
+                    >
+                        Income
+                    </button>
+                </div>
+            )}
 
-            {type === TransactionType.EXPENSE && (
+            {type === TransactionType.EXPENSE && !forceRecurring && (
                 <div className="glass-panel p-1.5 rounded-[1.8rem] flex relative overflow-hidden">
                     <button
                         type="button"

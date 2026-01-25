@@ -6,6 +6,7 @@ import { ArrowUpRight, ArrowDownRight, Settings as SettingsIcon, Target, Chevron
 interface DashboardProps {
   transactions: Transaction[];
   onNavigate: (view: View) => void;
+  onSelectTransaction: (t: Transaction) => void;
 }
 
 type Timeframe = 'daily' | 'weekly' | 'monthly' | 'yearly';
@@ -17,7 +18,7 @@ interface PeriodData {
   endDate: Date;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, onSelectTransaction }) => {
   const [timeframe, setTimeframe] = useState<Timeframe>('monthly');
   const [selectedIndex, setSelectedIndex] = useState(12);
   
@@ -103,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
+    <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative" style={{ height: 'var(--app-height)' }}>
       <div className="flex-1 overflow-y-auto no-scrollbar scroll-y-only pb-40">
         <header className="px-6 pt-safe pb-4 flex justify-between items-center bg-transparent border-b border-white/10">
           <div className="flex items-center py-1.5">
@@ -221,7 +222,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
               {filteredTransactions.slice(0, 8).map(t => {
                 const Icon = getCategoryIcon(t.category);
                 return (
-                  <div key={t.id} className="glass-panel p-4 rounded-[1.5rem] flex items-center gap-4 border-white/40 shadow-sm active:scale-[0.98] transition-all hover:bg-white/80 dark:hover:bg-slate-800/80">
+                  <div 
+                    key={t.id} 
+                    onClick={() => onSelectTransaction(t)}
+                    className="glass-panel p-4 rounded-[1.5rem] flex items-center gap-4 border-white/40 shadow-sm active:scale-[0.98] transition-all hover:bg-white/80 dark:hover:bg-slate-800/80 cursor-pointer"
+                  >
                     <div 
                       className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg"
                       style={{ backgroundColor: getCategoryColor(t.category) }}

@@ -1,15 +1,17 @@
 import React, { useMemo } from 'react';
 import { RecurringTransaction, RecurrenceFrequency, TransactionType, View } from '../types';
 import { getCategoryColor, getCategoryIcon, formatCurrency } from '../constants';
-import { Repeat, Trash2, CreditCard, Bell, TrendingDown } from 'lucide-react';
+import { Repeat, Trash2, CreditCard, Bell, TrendingDown, Edit3, Plus } from 'lucide-react';
 
 interface SubscriptionsProps {
   recurringTransactions: RecurringTransaction[];
   onDelete: (id: string) => void;
+  onEdit: (rt: RecurringTransaction) => void;
   onNavigate: (view: View) => void;
+  onAddClick: () => void;
 }
 
-export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransactions, onDelete, onNavigate }) => {
+export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransactions, onDelete, onEdit, onNavigate, onAddClick }) => {
   const expenseSubs = useMemo(() => 
     recurringTransactions.filter(t => t.type === TransactionType.EXPENSE),
   [recurringTransactions]);
@@ -43,14 +45,22 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
   return (
     <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-700">
       <div className="flex-1 overflow-y-auto no-scrollbar scroll-y-only px-6 pb-40 pt-4">
-        <header className="pt-safe pb-4 bg-transparent border-b border-white/10">
+        <header className="pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10">
           <div className="flex items-center gap-3 mb-1">
               <div className="bg-gradient-to-br from-indigo-500 to-vibrant-purple p-2.5 rounded-2xl text-white shadow-lg">
                   <Repeat size={24} />
               </div>
-              <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Subscriptions</h1>
+              <div>
+                  <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Subscriptions</h1>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Manage your recurring billing</p>
+              </div>
           </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Manage your recurring billing</p>
+          <button 
+            onClick={onAddClick}
+            className="p-3 mt-1 bg-vibrant-purple text-white rounded-full shadow-lg shadow-purple-500/30 active:scale-95 transition-all"
+          >
+            <Plus size={22} />
+          </button>
         </header>
 
         <div className="h-4"></div>
@@ -85,7 +95,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
                       <CreditCard size={32} />
                   </div>
                   <p className="text-slate-400 font-medium">No recurring expenses tracked yet.</p>
-                  <button onClick={() => onNavigate(View.ADD)} className="text-brand-500 font-bold text-sm active:scale-95">+ Add First Subscription</button>
+                  <button onClick={onAddClick} className="text-brand-500 font-bold text-sm active:scale-95">+ Add First Subscription</button>
               </div>
           ) : (
               expenseSubs.map(sub => {
@@ -103,13 +113,18 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
                               </div>
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{formatCurrency(sub.amount, 2)} / cycle</p>
                           </div>
-                          <div className="text-right shrink-0">
-                              <div className={`text-[10px] font-black uppercase mb-1 flex items-center justify-end gap-1 ${daysLeft <= 3 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                          <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                              <div className={`text-[10px] font-black uppercase flex items-center justify-end gap-1 ${daysLeft <= 3 ? 'text-rose-500' : 'text-emerald-500'}`}>
                                   <Bell size={10} /> {daysLeft === 0 ? 'Today' : `In ${daysLeft} days`}
                               </div>
-                              <button onClick={() => confirm('Stop this recurring payment?') && onDelete(sub.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90">
-                                  <Trash2 size={18} />
-                              </button>
+                              <div className="flex gap-1">
+                                <button onClick={() => onEdit(sub)} className="p-2 text-slate-400 hover:text-brand-500 transition-colors active:scale-90">
+                                    <Edit3 size={18} />
+                                </button>
+                                <button onClick={() => confirm('Stop this recurring payment?') && onDelete(sub.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90">
+                                    <Trash2 size={18} />
+                                </button>
+                              </div>
                           </div>
                       </div>
                   );
