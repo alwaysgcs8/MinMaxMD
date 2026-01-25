@@ -65,42 +65,54 @@
       @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
       
       :root {
-        --bg-light: #fdfdff; 
+        --bg-light: #fdfdff;
         --bg-dark: #020617;
       }
 
-      html, body {
+      /* Make sure the *page* background is never white */
+      html {
         height: 100%;
         width: 100%;
         margin: 0;
         padding: 0;
-        -webkit-tap-highlight-color: transparent;
-        font-family: 'Outfit', sans-serif;
-        overflow: hidden;
-        /* Prevents horizontal pull-to-refresh style jitter on iOS */
-        overscroll-behavior-x: none;
+        background: var(--bg-light);
+      }
+
+      html.dark {
+        background: var(--bg-dark);
       }
 
       body {
-        min-height: 100dvh;
-        background-color: var(--bg-light);
-        position: fixed;
+        height: 100%;
         width: 100%;
-      }
-      
-      .dark body {
-        background-color: var(--bg-dark);
+        margin: 0;
+        padding: 0;
+        background: transparent; /* html owns the background */
+        font-family: 'Outfit', sans-serif;
+
+        /* Avoid iOS fixed-body viewport bugs */
+        position: relative;
+        overflow: hidden;
+
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-x: none;
       }
 
+      /* Prefer stable viewport height on iOS */
       #root {
-        height: 100dvh;
         width: 100%;
-        position: relative;
-        z-index: 10;
+        height: 100%;
+        min-height: 100svh;              /* stable viewport */
+        min-height: -webkit-fill-available; /* iOS fallback */
         display: flex;
         flex-direction: column;
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
+        position: relative;
+        z-index: 10;
+
+        /* Prevent “see-through” at the home indicator */
+        padding-bottom: env(safe-area-inset-bottom);
       }
 
       /* Multi-color Mesh/Aurora Background */
@@ -110,11 +122,6 @@
         z-index: 0;
         pointer-events: none;
         overflow: hidden;
-        background: var(--bg-light);
-      }
-
-      .dark #app-background {
-        background: var(--bg-dark);
       }
 
       .bg-blob {
