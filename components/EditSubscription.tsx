@@ -63,7 +63,7 @@ export const EditSubscription: React.FC<EditSubscriptionProps> = ({ recurringTra
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe px-6">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="text-center py-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[3rem] p-10 border border-white/60 dark:border-white/10 shadow-glass">
             <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-[0.2em]">Billing Amount</label>
@@ -172,6 +172,7 @@ export const EditSubscription: React.FC<EditSubscriptionProps> = ({ recurringTra
             </button>
           </div>
         </form>
+        <div style={{ height: `calc(8rem + env(safe-area-inset-bottom))` }} />
       </main>
     </div>
   );

@@ -65,11 +65,11 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
         <div className="h-4"></div>
 
         {/* Categories */}
-        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8">
+        <div className="p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
               <Tag size={20} className="text-brand-500" /> Edit Categories
           </h3>
@@ -97,7 +97,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
         </div>
 
         {/* Appearance */}
-        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8">
+        <div className="p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Appearance</h3>
           <div className="flex bg-white/50 dark:bg-black/20 p-1.5 rounded-2xl border border-white/20">
               {(['light', 'system', 'dark'] as Theme[]).map((t) => (
@@ -113,7 +113,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
         </div>
 
         {/* Data Management */}
-        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8">
+        <div className="p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Data Management</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 flex items-center gap-1.5"><Save size={12} className="text-emerald-500" /> Local Storage Active</p>
           <div className="grid grid-cols-2 gap-4">
@@ -128,6 +128,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
               <input type="file" ref={fileInputRef} onChange={handleImport} accept=".json" className="hidden" />
           </div>
         </div>
+        <div style={{ height: `calc(8rem + env(safe-area-inset-bottom))` }} />
       </main>
     </div>
   );

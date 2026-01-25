@@ -432,7 +432,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe px-6">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
         <div className="h-4"></div>
         {activeWidgets.length === 0 && (
              <div className="text-center py-12 text-slate-400 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
@@ -447,6 +447,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
           {activeWidgets.includes(AnalyticsWidgetType.INCOME_VS_EXPENSE) && renderIncomeVsExpense()}
           {activeWidgets.includes(AnalyticsWidgetType.BUDGET_LIMITS) && renderBudgetLimits()}
         </div>
+        <div style={{ height: `calc(8rem + env(safe-area-inset-bottom))` }} />
       </main>
 
       {isCustomizing && (

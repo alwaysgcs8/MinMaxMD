@@ -121,11 +121,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
         <div className="h-4"></div>
         
         {/* Timeframe Selector */}
-        <div className="px-6 pb-4">
+        <div className="pb-4">
           <div className="flex glass-panel p-1 rounded-2xl overflow-hidden shadow-sm border border-white/20">
             {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((tf) => (
               <button
@@ -142,7 +142,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
         </div>
 
         {/* Hero Balance Card */}
-        <div className="px-6 mb-8">
+        <div className="mb-8">
           <div className="bg-slate-900 dark:bg-slate-800/90 rounded-[2.5rem] p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl border border-white/5 ring-1 ring-white/10">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/20 blur-[60px] rounded-full"></div>
             
@@ -202,7 +202,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
         </div>
 
         {/* Recent Activity */}
-        <div className="px-6 space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.15em]">Activity</h3>
             <button 
@@ -248,6 +248,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
             </div>
           )}
         </div>
+        <div style={{ height: `calc(8rem + env(safe-area-inset-bottom))` }} />
       </main>
     </div>
   );

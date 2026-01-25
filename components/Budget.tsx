@@ -61,7 +61,7 @@ export const Budget: React.FC<BudgetProps> = ({ overallBudget, categoryLimits, c
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe px-6">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
         <div className="h-4"></div>
         
         <div className="mb-8">
@@ -135,6 +135,7 @@ export const Budget: React.FC<BudgetProps> = ({ overallBudget, categoryLimits, c
               })}
           </div>
         </div>
+        <div style={{ height: `calc(8rem + env(safe-area-inset-bottom))` }} />
       </main>
     </div>
   );

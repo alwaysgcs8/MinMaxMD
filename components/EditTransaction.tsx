@@ -56,7 +56,7 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-y-only pb-32 pb-safe px-6">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Type Toggle Container */}
           <div className="p-1.5 glass-panel rounded-[2rem] flex backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-glass overflow-hidden">
@@ -177,6 +177,7 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
             </button>
           </div>
         </form>
+        <div style={{ height: `calc(8rem + env(safe-area-inset-bottom))` }} />
       </main>
     </div>
   );

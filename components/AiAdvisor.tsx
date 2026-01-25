@@ -85,7 +85,7 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
         <p className="text-slate-500 dark:text-slate-400 font-medium">Smart insights for your wallet</p>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-y-only pb-12 pb-safe px-6">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
         <div className="h-4"></div>
 
         {!hasFetched && !loading && (
@@ -117,6 +117,7 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
                 {renderMarkdown(analysis)}
             </div>
         )}
+        <div style={{ height: `calc(8rem + env(safe-area-inset-bottom))` }} />
       </main>
 
       <footer className="px-6 pt-4 pb-32 shrink-0">
