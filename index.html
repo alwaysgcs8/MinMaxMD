@@ -6,7 +6,7 @@
     <title>MinMaxMD</title>
     
     <!-- Increment version to force PWA manifest refresh -->
-    <link rel="manifest" href="/manifest.json?v=22" />
+    <link rel="manifest" href="/manifest.json?v=24" />
     
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
@@ -77,60 +77,6 @@
                          linear-gradient(180deg, #020617 0%, #0f172a 100%);
       }
 
-      /* 1) Make the page itself fill the screen reliably on iOS */
-      html, body {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        overscroll-behavior: none;
-        background: var(--app-grad-light) !important;
-      }
-      
-      html.dark, html.dark body {
-        background: var(--app-grad-dark) !important;
-      }
-
-      body {
-        font-family: 'Outfit', sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -webkit-tap-highlight-color: transparent;
-        position: relative;
-        min-height: 100svh;              /* iOS “stable” viewport */
-        min-height: 100dvh;              /* modern dynamic viewport */
-        min-height: -webkit-fill-available; /* older iOS fallback */
-        display: flex;                   /* important */
-        flex-direction: column;
-      }
-
-      /* 2) Root must stretch */
-      #root {
-        flex: 1;                         /* key stretch */
-        position: relative;
-        z-index: 10;
-        min-height: 100svh;
-        display: flex;
-        flex-direction: column;
-        background: transparent;
-      }
-
-      /* 3) Background must be truly viewport-attached */
-      #app-background {
-        position: fixed;
-        left: 0; 
-        right: 0; 
-        top: 0; 
-        bottom: 0; 
-        z-index: 0;
-        pointer-events: none;
-        background: var(--app-grad-light) !important;
-        transform: translateZ(0);
-      }
-      html.dark #app-background {
-        background: var(--app-grad-dark) !important;
-      }
-
       .mesh-gradient {
         position: absolute;
         inset: -50%;
@@ -170,19 +116,68 @@
         overscroll-behavior-y: bounce; 
       }
 
-      /* Blends with background to avoid hard seams */
-      #safe-area-bottom-filler {
+      /* FINAL STICKY FIX OVERRIDES */
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      body {
+        font-family: 'Outfit', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 100svh;
+        min-height: -webkit-fill-available;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--app-grad-light) !important;
+      }
+
+      html.dark body {
+        background: var(--app-grad-dark) !important;
+      }
+
+      #root {
+        flex: 1;
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+        z-index: 10;
+        background: transparent;
+      }
+
+      #app-background {
         position: fixed;
-        left: 0;
-        right: 0;
+        left: 0; 
+        right: 0; 
+        top: 0; 
+        bottom: 0; 
+        z-index: 0;
+        pointer-events: none;
+        background: var(--app-grad-light) !important;
+        transform: translateZ(0);
+      }
+
+      html.dark #app-background {
+        background: var(--app-grad-dark) !important;
+      }
+
+      #ios-safearea-filler {
+        position: fixed;
+        left: 0; 
+        right: 0; 
         bottom: 0;
         height: env(safe-area-inset-bottom);
-        z-index: 9998;
         background: transparent;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        transform: translateZ(0);
         pointer-events: none;
+        z-index: 999999;
       }
 
       .bottom-nav-container {
@@ -222,7 +217,7 @@
       <div class="mesh-gradient"></div>
     </div>
     <div id="root"></div>
-    <div id="safe-area-bottom-filler" aria-hidden="true"></div>
+    <div id="ios-safearea-filler" aria-hidden="true"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

@@ -1,5 +1,6 @@
+
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // We use process.env here because we have configured vite.config.ts to 
@@ -23,8 +24,8 @@ const firebaseConfig = {
 
 // Initialize only if config is valid
 let app = null;
-let auth = null;
-let db = null;
+let auth: any = null;
+let db: any = null;
 
 try {
     // Check if apiKey is present and not just an empty string
@@ -54,7 +55,8 @@ export const signInWithGoogle = async () => {
 
 export const logout = async () => {
     if (!auth) return;
-    await firebaseSignOut(auth);
+    // Use the standard signOut function from firebase/auth
+    await signOut(auth);
 };
 
 export { auth, db };

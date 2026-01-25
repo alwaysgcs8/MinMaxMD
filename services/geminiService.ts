@@ -1,24 +1,16 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { Transaction, TransactionType } from '../types';
 
-// Access the key safely. Vite replaces this string during build.
-// @ts-ignore
-const apiKey = process.env.API_KEY;
-
-let ai: GoogleGenAI | null = null;
-
-// Initialize Gemini only if a key is present
-if (apiKey && apiKey.length > 0) {
-  try {
-    ai = new GoogleGenAI({ apiKey });
-  } catch (error) {
-    console.error("Gemini Client Init Error", error);
-  }
-}
-
+/**
+ * Generates financial insights using Gemini 3 Flash.
+ * Follows Google GenAI SDK best practices for initialization and content generation.
+ */
 export const getBudgetAnalysis = async (transactions: Transaction[]): Promise<string> => {
-  // --- DEMO MODE (Fallback if no key) ---
-  if (!ai) {
+  const apiKey = process.env.API_KEY;
+
+  // Fallback if no API Key is available (Demo Mode)
+  if (!apiKey || apiKey.length === 0) {
     console.log("Demo Mode: Returning mock AI response.");
     
     // Calculate basic stats for the mock response so it feels real
@@ -38,7 +30,7 @@ export const getBudgetAnalysis = async (transactions: Transaction[]): Promise<st
 
     return `### 🤖 AI Advisor (Demo Mode)
 
-> *Note: Real AI analysis is disabled because the API Key is missing in your .env file. Here is a simulation based on your local data:*
+> *Note: Real AI analysis is disabled because the API Key is missing in your environment. Here is a simulation based on your local data:*
 
 **1. Monthly Summary**
 You have tracked **${transactions.length} transactions** so far. Your total expenses currently sit at **$${totalSpent.toFixed(2)}**. 
@@ -55,6 +47,9 @@ Try the "30-day rule": wait 30 days before making any non-essential purchase ove
 
   // --- REAL AI MODE ---
   try {
+    // Create a fresh instance for the request to ensure latest configuration
+    const ai = new GoogleGenAI({ apiKey });
+
     // Simplify data to send fewer tokens and focus on substance
     const simplifiedData = transactions.map(t => ({
       date: t.date.split('T')[0],
@@ -78,11 +73,13 @@ Try the "30-day rule": wait 30 days before making any non-essential purchase ove
       If there is not enough data, just give general advice.
     `;
 
+    // Use ai.models.generateContent with model name and prompt directly
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
     });
 
+    // Extract text output using the .text property
     return response.text || "I couldn't generate an analysis at this time.";
   } catch (error) {
     console.error("Gemini API Error:", error);

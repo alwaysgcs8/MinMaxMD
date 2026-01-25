@@ -1,9 +1,11 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Theme } from '../types';
 import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Cloud, LogOut, Check, Save, Plus, X, Tag } from 'lucide-react';
 import { exportData, importData } from '../services/storageService';
 import { signInWithGoogle, logout, auth } from '../services/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+// Fix: Import onAuthStateChanged and use type for User
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import { getCategoryColor } from '../constants';
 
 interface SettingsProps {
@@ -115,7 +117,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
           </div>
         </div>
 
-        {/* Theme */}
+        {/* Appearance */}
         <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Appearance</h3>
           <div className="flex bg-white/50 dark:bg-black/20 p-1.5 rounded-2xl border border-white/20">
