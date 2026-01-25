@@ -41,22 +41,24 @@ const App: React.FC = () => {
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Swipe back logic with Animation
+  // Swipe back logic
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const touchStart = useRef({ x: 0, y: 0 });
   const isEligibleSwipe = useRef(false);
 
   useEffect(() => {
-    // Only allow swipe-back in sub-views
     const canSwipeBack = [View.EDIT, View.EDIT_SUBSCRIPTION, View.ADD, View.SETTINGS, View.BUDGET].includes(currentView);
-    if (!canSwipeBack) return;
+    if (!canSwipeBack) {
+      setSwipeOffset(0);
+      return;
+    }
 
     const handleTouchStart = (e: TouchEvent) => {
         const x = e.touches[0].clientX;
         const y = e.touches[0].clientY;
         touchStart.current = { x, y };
-        // Edge threshold: 40px
+        // Trigger from left edge
         isEligibleSwipe.current = x < 40;
     };
 
@@ -68,13 +70,11 @@ const App: React.FC = () => {
         const deltaX = currentX - touchStart.current.x;
         const deltaY = Math.abs(currentY - touchStart.current.y);
 
-        // Ensure horizontal intent
         if (!isDragging && deltaX > 10 && deltaX > deltaY) {
             setIsDragging(true);
         }
 
         if (isDragging) {
-            // Prevent scrolling while swiping back
             if (e.cancelable) e.preventDefault();
             setSwipeOffset(Math.max(0, deltaX));
         }
@@ -87,10 +87,9 @@ const App: React.FC = () => {
         }
 
         const deltaX = e.changedTouches[0].clientX - touchStart.current.x;
-        const threshold = window.innerWidth * 0.3; // 30% width threshold
+        const threshold = window.innerWidth * 0.3;
 
         if (deltaX > threshold) {
-            // Complete animation then change view
             setSwipeOffset(window.innerWidth);
             setTimeout(() => {
                 handleBack();
@@ -98,7 +97,6 @@ const App: React.FC = () => {
                 setIsDragging(false);
             }, 200);
         } else {
-            // Snap back
             setSwipeOffset(0);
             setIsDragging(false);
         }
@@ -194,29 +192,11 @@ const App: React.FC = () => {
                 setBudgetLimits(cloudData.limits || []);
                 if (cloudData.overallBudget) setOverallBudget(cloudData.overallBudget);
                 if (cloudData.categories) setCategories(cloudData.categories);
-            } else {
-                await saveToCloud(currentUser.uid, {
-                    transactions,
-                    recurring: recurringTransactions,
-                    limits: budgetLimits,
-                    overallBudget,
-                    categories
-                });
             }
         }
     });
     return () => unsubscribe();
   }, [isLoaded]);
-
-  useEffect(() => {
-    const applyTheme = () => {
-      const isDark = theme === 'dark' || 
-        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      if (isDark) document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
-    };
-    applyTheme();
-  }, [theme]);
 
   useEffect(() => {
     if (isLoaded) {
@@ -368,17 +348,23 @@ const App: React.FC = () => {
   if (!isLoaded) return null;
 
   return (
-    <div className="flex-1 w-full flex flex-col bg-transparent overflow-hidden">
+    <div className="flex-1 w-full h-full flex flex-col bg-transparent overflow-hidden relative">
       <main 
-        className="flex-1 overflow-hidden" 
+        className="flex-1 flex flex-col overflow-hidden w-full h-full" 
         style={{ 
             transform: `translateX(${swipeOffset}px)`,
-            transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.1, 0.7, 0.1, 1)',
             willChange: 'transform'
         }}
       >
         {renderView()}
       </main>
+      
+      {/* Visual Indicator for Swipe Back */}
+      {isDragging && swipeOffset > 10 && (
+          <div className="fixed inset-y-0 left-0 w-1 bg-brand-500/30 blur-sm pointer-events-none z-[150]" />
+      )}
+
       {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && currentView !== View.EDIT_SUBSCRIPTION && currentView !== View.BUDGET && (
         <BottomNav currentView={currentView} onViewChange={setCurrentView} isVisible={isNavVisible} />
       )}
