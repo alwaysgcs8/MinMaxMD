@@ -41,36 +41,80 @@ const App: React.FC = () => {
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Swipe back logic
+  // Swipe back logic with Animation
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const touchStart = useRef({ x: 0, y: 0 });
-  const isSwiping = useRef(false);
+  const isEligibleSwipe = useRef(false);
 
   useEffect(() => {
+    // Only allow swipe-back in sub-views
+    const canSwipeBack = [View.EDIT, View.EDIT_SUBSCRIPTION, View.ADD, View.SETTINGS, View.BUDGET].includes(currentView);
+    if (!canSwipeBack) return;
+
     const handleTouchStart = (e: TouchEvent) => {
-        touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        // Only trigger swipe back if starting from the left edge (first 40px)
-        isSwiping.current = touchStart.current.x < 40;
+        const x = e.touches[0].clientX;
+        const y = e.touches[0].clientY;
+        touchStart.current = { x, y };
+        // Edge threshold: 40px
+        isEligibleSwipe.current = x < 40;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+        if (!isEligibleSwipe.current) return;
+        
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const deltaX = currentX - touchStart.current.x;
+        const deltaY = Math.abs(currentY - touchStart.current.y);
+
+        // Ensure horizontal intent
+        if (!isDragging && deltaX > 10 && deltaX > deltaY) {
+            setIsDragging(true);
+        }
+
+        if (isDragging) {
+            // Prevent scrolling while swiping back
+            if (e.cancelable) e.preventDefault();
+            setSwipeOffset(Math.max(0, deltaX));
+        }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-        if (!isSwiping.current) return;
-        const deltaX = e.changedTouches[0].clientX - touchStart.current.x;
-        const deltaY = Math.abs(e.changedTouches[0].clientY - touchStart.current.y);
-
-        // Required distance for back swipe: 100px, and horizontal (deltaY < 50px)
-        if (deltaX > 100 && deltaY < 50) {
-            handleBack();
+        if (!isDragging) {
+            isEligibleSwipe.current = false;
+            return;
         }
-        isSwiping.current = false;
+
+        const deltaX = e.changedTouches[0].clientX - touchStart.current.x;
+        const threshold = window.innerWidth * 0.3; // 30% width threshold
+
+        if (deltaX > threshold) {
+            // Complete animation then change view
+            setSwipeOffset(window.innerWidth);
+            setTimeout(() => {
+                handleBack();
+                setSwipeOffset(0);
+                setIsDragging(false);
+            }, 200);
+        } else {
+            // Snap back
+            setSwipeOffset(0);
+            setIsDragging(false);
+        }
+        isEligibleSwipe.current = false;
     };
 
-    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd);
+    
     return () => {
         window.removeEventListener('touchstart', handleTouchStart);
+        window.removeEventListener('touchmove', handleTouchMove);
         window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [currentView, returnView]);
+  }, [currentView, returnView, isDragging]);
 
   const handleBack = () => {
     if (currentView === View.EDIT || currentView === View.EDIT_SUBSCRIPTION) {
@@ -80,7 +124,6 @@ const App: React.FC = () => {
     }
   };
   
-  // Helper to process recurring transactions
   const processRecurringTransactions = (
     currentTxs: Transaction[],
     currentRecurring: RecurringTransaction[]
@@ -326,7 +369,14 @@ const App: React.FC = () => {
 
   return (
     <div className="flex-1 w-full flex flex-col bg-transparent overflow-hidden">
-      <main className="flex-1 overflow-hidden">
+      <main 
+        className="flex-1 overflow-hidden" 
+        style={{ 
+            transform: `translateX(${swipeOffset}px)`,
+            transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            willChange: 'transform'
+        }}
+      >
         {renderView()}
       </main>
       {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && currentView !== View.EDIT_SUBSCRIPTION && currentView !== View.BUDGET && (

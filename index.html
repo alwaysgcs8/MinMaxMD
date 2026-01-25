@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
     <title>MinMaxMD</title>
     
-    <!-- Cache-busting manifest to force iOS to re-fetch PWA settings -->
-    <link rel="manifest" href="/manifest.json?v=10" />
+    <link rel="manifest" href="/manifest.json?v=11" />
     
-    <!-- Theme & Status Bar Meta -->
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
@@ -57,10 +55,6 @@
     </script>
     
     <script>
-      /**
-       * CRITICAL iOS FIX: This script runs immediately to set the background
-       * before the browser has a chance to paint a white frame.
-       */
       (function() {
         const theme = localStorage.getItem('budget_wise_v2_theme');
         const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -75,6 +69,7 @@
       })();
 
       function setAppHeight() {
+        // Use 100dvh if supported, else fallback to innerHeight
         const h = window.innerHeight;
         document.documentElement.style.setProperty('--app-height', `${h}px`);
       }
@@ -91,12 +86,11 @@
         --bg-dark: #020617;
       }
 
-      /* Lock background colors on html/body to prevent white seams during overscroll */
       html {
         background-color: var(--bg-light);
         height: 100%;
         height: -webkit-fill-available;
-        overflow: hidden;
+        overflow: hidden; /* Prevents double scrolling on html */
       }
       html.dark {
         background-color: var(--bg-dark);
@@ -105,8 +99,8 @@
       body {
         margin: 0;
         padding: 0;
-        min-height: 100%;
-        min-height: -webkit-fill-available;
+        height: 100%;
+        height: -webkit-fill-available;
         width: 100vw;
         background-color: var(--bg-light) !important;
         font-family: 'Outfit', sans-serif;
@@ -114,7 +108,7 @@
         -webkit-tap-highlight-color: transparent;
         overscroll-behavior: none;
         position: relative;
-        overflow: hidden;
+        overflow: hidden; /* Root scroll happens inside #root/main */
       }
       html.dark body {
         background-color: var(--bg-dark) !important;
@@ -124,7 +118,7 @@
         position: relative;
         z-index: 10;
         height: 100dvh;
-        height: -webkit-fill-available;
+        height: 100%;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -177,6 +171,15 @@
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch;
+        height: 100%;
+      }
+
+      /* Ensure the main container actually fills the screen */
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
     </style>
     
