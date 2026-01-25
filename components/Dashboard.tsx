@@ -111,12 +111,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
       <header 
         className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-2 flex justify-between items-center bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm"
       >
-        <div className="flex items-center gap-2 py-1.5">
-          <div className="bg-brand-500 p-1.5 rounded-lg text-white shadow-neon">
-            <Wallet size={16} />
-          </div>
+        <div className="flex items-center py-1.5">
           <h1 className="text-base font-black tracking-tight text-slate-900 dark:text-white uppercase">
-            Min<span className="text-brand-500">Max</span>
+            MinMax<span className="text-brand-500">MD</span>
           </h1>
         </div>
         <div className="flex gap-2">
