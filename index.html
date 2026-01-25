@@ -69,31 +69,48 @@
         --bg-dark: #020617;
       }
 
-      /* Make sure the *page* background is never white */
-      html {
+      /* 1) Make sure the document itself is never white */
+      html, body {
         height: 100%;
         width: 100%;
         margin: 0;
-        padding: 0;
         background: var(--bg-light);
       }
 
-      html.dark {
+      /* If you toggle dark on <html> (recommended) */
+      html.dark, html.dark body {
         background: var(--bg-dark);
       }
 
-      body {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        background: transparent; /* html owns the background */
-        font-family: 'Outfit', sans-serif;
+      /* 2) Create a fixed "underlay" that covers overscroll/bounce areas */
+      body::before {
+        content: "";
+        position: fixed;
+        z-index: -9999;
+        left: 0;
+        right: 0;
 
-        /* Avoid iOS fixed-body viewport bugs */
+        /* extend beyond the viewport so bounce never reveals white */
+        top: -100vh;
+        bottom: -100vh;
+
+        background: var(--bg-light);
+      }
+
+      html.dark body::before {
+        background: var(--bg-dark);
+      }
+
+      /* 3) Ensure your app containers also paint a background */
+      #root,
+      #app-background {
+        background: transparent; /* root is fine; underlay owns the real background */
+      }
+
+      body {
         position: relative;
         overflow: hidden;
-
+        font-family: 'Outfit', sans-serif;
         -webkit-tap-highlight-color: transparent;
         overscroll-behavior-x: none;
       }
