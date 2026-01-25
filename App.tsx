@@ -11,8 +11,9 @@ import {
     saveToCloud, loadFromCloud
 } from './services/storageService';
 import { auth } from './services/firebase';
-// Fix: Import onAuthStateChanged and use type for User
-import { onAuthStateChanged, type User } from 'firebase/auth';
+// Fix: Use separate imports for functions and types to resolve export member errors
+import { onAuthStateChanged } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 import { Dashboard } from './components/Dashboard';
 import { BottomNav } from './components/BottomNav';
 import { AddTransaction } from './components/AddTransaction';
@@ -193,7 +194,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!auth) return;
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-        setUser(currentUser);
+        setUser(currentUser as User | null);
         if (currentUser && isLoaded) {
             const cloudData = await loadFromCloud(currentUser.uid);
             if (cloudData) {

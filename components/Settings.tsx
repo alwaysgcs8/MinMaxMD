@@ -4,8 +4,9 @@ import { Theme } from '../types';
 import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Cloud, LogOut, Check, Save, Plus, X, Tag } from 'lucide-react';
 import { exportData, importData } from '../services/storageService';
 import { signInWithGoogle, logout, auth } from '../services/firebase';
-// Fix: Import onAuthStateChanged and use type for User
-import { onAuthStateChanged, type User } from 'firebase/auth';
+// Fix: Use separate imports for functions and types to resolve export member errors
+import { onAuthStateChanged } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 import { getCategoryColor } from '../constants';
 
 interface SettingsProps {
@@ -25,7 +26,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
   useEffect(() => {
     if (!auth) return;
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
+        setUser(currentUser as User | null);
     });
     return () => unsubscribe();
   }, []);

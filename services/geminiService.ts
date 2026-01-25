@@ -7,10 +7,8 @@ import { Transaction, TransactionType } from '../types';
  * Follows Google GenAI SDK best practices for initialization and content generation.
  */
 export const getBudgetAnalysis = async (transactions: Transaction[]): Promise<string> => {
-  const apiKey = process.env.API_KEY;
-
   // Fallback if no API Key is available (Demo Mode)
-  if (!apiKey || apiKey.length === 0) {
+  if (!process.env.API_KEY || process.env.API_KEY.length === 0) {
     console.log("Demo Mode: Returning mock AI response.");
     
     // Calculate basic stats for the mock response so it feels real
@@ -47,8 +45,8 @@ Try the "30-day rule": wait 30 days before making any non-essential purchase ove
 
   // --- REAL AI MODE ---
   try {
-    // Create a fresh instance for the request to ensure latest configuration
-    const ai = new GoogleGenAI({ apiKey });
+    // ALWAYS initialize the GoogleGenAI instance right before use with the API key from process.env.API_KEY
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     // Simplify data to send fewer tokens and focus on substance
     const simplifiedData = transactions.map(t => ({
@@ -73,7 +71,8 @@ Try the "30-day rule": wait 30 days before making any non-essential purchase ove
       If there is not enough data, just give general advice.
     `;
 
-    // Use ai.models.generateContent with model name and prompt directly
+    // Use ai.models.generateContent with model name and prompt directly.
+    // Recommended model for text tasks is 'gemini-3-flash-preview'.
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
