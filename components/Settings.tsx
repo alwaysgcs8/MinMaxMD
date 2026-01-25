@@ -86,7 +86,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
       
       <div className="flex-1 overflow-y-auto no-scrollbar pb-32 space-y-8 scroll-y-only">
         {/* Categories */}
-        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
               <Tag size={20} className="text-brand-500" /> Edit Categories
           </h3>
@@ -114,7 +114,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
         </div>
 
         {/* Theme */}
-        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Appearance</h3>
           <div className="flex bg-white/50 dark:bg-black/20 p-1.5 rounded-2xl border border-white/20">
               {(['light', 'system', 'dark'] as Theme[]).map((t) => (
@@ -130,7 +130,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
         </div>
 
         {/* Cloud Sync */}
-        <div className="mx-6 p-6 bg-gradient-to-br from-blue-500 to-brand-600 dark:from-blue-900 dark:to-slate-900 rounded-[2rem] shadow-lg text-white">
+        <div className="mx-6 p-6 bg-gradient-to-br from-blue-500 to-brand-600 dark:from-blue-900 dark:to-slate-900 rounded-[2.5rem] shadow-lg text-white">
           <div className="flex items-center gap-3 mb-4">
               <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md"><Cloud size={24} className="text-white" /></div>
               <h3 className="text-lg font-bold">Cloud Sync</h3>
@@ -155,7 +155,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
         </div>
 
         {/* Data Management */}
-        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass">
+        <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Data Management</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 flex items-center gap-1.5"><Save size={12} className="text-emerald-500" /> Local Storage Active</p>
           <div className="grid grid-cols-2 gap-4">

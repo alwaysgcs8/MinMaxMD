@@ -56,7 +56,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
         <p className="text-slate-500 dark:text-slate-400 font-medium">Manage your recurring billing</p>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-40 scroll-y-only">
+      <div className="flex-1 pb-40 scroll-y-only no-scrollbar">
         <div className="px-6 mb-8 shrink-0">
           <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 p-8 shadow-2xl">
               <div className="absolute top-0 right-0 w-40 h-40 bg-vibrant-purple/20 blur-[60px] rounded-full"></div>
@@ -117,7 +117,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
                   );
               })
           )}
-          <div className="p-6 bg-brand-500/5 rounded-[2rem] border border-brand-500/10 mt-8">
+          <div className="p-6 bg-brand-500/5 rounded-[2rem] border border-brand-500/10 mt-8 mb-12">
             <div className="flex gap-3">
                 <TrendingDown size={20} className="text-brand-500 shrink-0" />
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">

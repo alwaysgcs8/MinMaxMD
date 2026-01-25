@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { Button } from './Button';
-import { Trash2, Check, ArrowLeft } from 'lucide-react';
+import { Trash2, Check, ArrowLeft, Tag, Calendar, DollarSign, Type } from 'lucide-react';
 
 interface EditTransactionProps {
   transaction: Transaction;
@@ -39,23 +39,27 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl animate-in slide-in-from-right duration-300 pt-safe-top">
-      <div className="flex justify-between items-center p-6">
-        <button onClick={onCancel} className="p-2 -ml-2 rounded-full hover:bg-slate-100/50 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-slate-300">
-            <ArrowLeft size={24} />
-        </button>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Transaction</h2>
-        <div className="w-10"></div>
-      </div>
+    <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in slide-in-from-right duration-300">
+      <header className="shrink-0 px-6 pt-safe-top pb-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+            <button onClick={onCancel} className="p-2 bg-white/50 dark:bg-white/10 rounded-full text-slate-600 dark:text-slate-300">
+                <ArrowLeft size={24} />
+            </button>
+            <div>
+                <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Edit</h1>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">Refine transaction</p>
+            </div>
+        </div>
+      </header>
 
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-8 pb-10 space-y-8">
+      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar pb-32 space-y-8 scroll-y-only px-6">
         {/* Type Toggle */}
-        <div className="bg-slate-200/50 dark:bg-black/30 p-1.5 rounded-[1.2rem] flex backdrop-blur-sm">
+        <div className="p-1.5 glass-panel rounded-3xl flex backdrop-blur-sm border-white/50">
           <button
             type="button"
             onClick={() => setType(TransactionType.EXPENSE)}
-            className={`flex-1 py-3 text-sm font-bold rounded-2xl transition-all duration-300 ${
-              type === TransactionType.EXPENSE ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+            className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-2xl transition-all duration-500 ${
+              type === TransactionType.EXPENSE ? 'bg-slate-800 text-white shadow-xl scale-[1.02]' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
             Expense
@@ -66,95 +70,115 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
               setType(TransactionType.INCOME);
               setCategory('Income');
             }}
-            className={`flex-1 py-3 text-sm font-bold rounded-2xl transition-all duration-300 ${
-              type === TransactionType.INCOME ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+            className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-2xl transition-all duration-500 ${
+              type === TransactionType.INCOME ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 scale-[1.02]' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
             Income
           </button>
         </div>
 
-        {/* Amount */}
-        <div>
-          <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Amount</label>
-          <div className="relative group">
-            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-2xl group-focus-within:text-brand-500 transition-colors">$</span>
+        {/* Amount Section */}
+        <div className="text-center py-4 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/10 shadow-glass">
+          <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest">Transaction Amount</label>
+          <div className="relative inline-block w-full">
             <input
               type="number"
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-12 pr-6 py-6 text-4xl font-bold rounded-[1.5rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-slate-800/50 focus:bg-white/80 dark:focus:bg-slate-800 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 text-slate-800 dark:text-white shadow-sm"
+              className={`w-full bg-transparent text-center text-7xl font-bold focus:outline-none transition-colors duration-500 
+                ${type === TransactionType.INCOME ? 'text-emerald-500' : 'text-rose-500'}
+              `}
               required
             />
+            <div className="text-slate-400 font-bold text-2xl mt-2 opacity-50">$</div>
           </div>
         </div>
 
-        {/* Category */}
+        {/* Details Panel */}
+        <div className="glass-panel p-6 rounded-[2.5rem] space-y-6 border-white/50 shadow-glass">
+            <div>
+                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
+                    <Type size={12} /> Description
+                </label>
+                <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Transaction name"
+                    className="w-full bg-white/50 dark:bg-slate-900/50 px-5 py-4 rounded-2xl border border-white/40 dark:border-white/10 outline-none text-lg font-bold text-slate-800 dark:text-white"
+                />
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+                <div>
+                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
+                        <Calendar size={12} /> Transaction Date
+                    </label>
+                    <input
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-full bg-white/50 dark:bg-slate-900/50 px-5 py-4 rounded-2xl border border-white/40 dark:border-white/10 outline-none font-bold text-slate-700 dark:text-slate-200"
+                        required
+                    />
+                </div>
+            </div>
+        </div>
+
+        {/* Category Selector */}
         {type === TransactionType.EXPENSE && (
-          <div>
-            <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Category</label>
-            <div className="flex flex-wrap gap-3">
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">
+                <Tag size={12} /> Category
+            </label>
+            <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`py-3 px-4 text-xs font-bold rounded-2xl border transition-all duration-200 ${
+                  className={`py-3 px-5 text-xs font-bold rounded-2xl border transition-all duration-300 ${
                     category === cat
-                      ? 'bg-brand-500 text-white border-brand-600 shadow-lg shadow-brand-500/30 transform scale-105'
-                      : 'bg-white/40 dark:bg-slate-800/40 border-white/60 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-800/60'
+                      ? 'bg-brand-500 text-white border-brand-600 shadow-lg scale-105'
+                      : 'bg-white/40 dark:bg-white/5 border-transparent text-slate-500'
                   }`}
                 >
                   {cat}
                 </button>
               ))}
-              {/* Ensure current category is shown even if deleted from settings list */}
               {!categories.includes(category) && category !== 'Income' && (
                   <button
                   type="button"
-                  className="py-3 px-4 text-xs font-bold rounded-2xl border bg-brand-500 text-white border-brand-600 opacity-75"
+                  className="py-3 px-5 text-xs font-bold rounded-2xl bg-slate-400 text-white opacity-70"
                 >
-                  {category} (Archived)
+                  {category}
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Description</label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Coffee, Rent, etc."
-            className="w-full px-6 py-4 rounded-[1.2rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-slate-800/50 focus:bg-white/80 dark:focus:bg-slate-800 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            required
-          />
-        </div>
-
-        {/* Date */}
-        <div>
-          <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full px-4 py-4 rounded-[1.2rem] border border-white/50 dark:border-white/10 bg-white/40 dark:bg-slate-800/50 focus:bg-white/80 dark:focus:bg-slate-800 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500/50 outline-none transition-all text-slate-800 dark:text-white"
-            required
-          />
-        </div>
-
-        <div className="pt-8 space-y-4">
-          <Button type="submit" fullWidth>
-            <Check size={20} /> Update Transaction
-          </Button>
-          <Button type="button" variant="danger" fullWidth onClick={handleDelete}>
+        {/* Action Buttons */}
+        <div className="pt-4 space-y-4">
+          <button 
+            type="submit" 
+            className="w-full py-5 rounded-3xl text-xl font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 shadow-xl shadow-brand-500/30 transition-all active:scale-95"
+          >
+            <div className="flex items-center justify-center gap-2">
+                <Check size={24} /> Save Changes
+            </div>
+          </button>
+          
+          <button 
+            type="button" 
+            onClick={handleDelete}
+            className="w-full py-5 rounded-3xl text-lg font-bold text-rose-500 bg-rose-500/10 border border-rose-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
             <Trash2 size={20} /> Delete Transaction
-          </Button>
+          </button>
         </div>
       </form>
     </div>

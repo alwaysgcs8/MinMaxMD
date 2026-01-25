@@ -436,7 +436,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
         </div>
       </div>
 
-      <div className="flex-1 px-6 space-y-6 no-scrollbar pb-32 scroll-y-only">
+      <div className="flex-1 px-6 space-y-6 pb-32 scroll-y-only no-scrollbar">
         {activeWidgets.length === 0 && (
              <div className="text-center py-12 text-slate-400 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                 <p>No widgets active.</p>
