@@ -8,7 +8,7 @@ interface AddTransactionProps {
   categories: string[];
   onAdd: (data: { transaction: Omit<Transaction, 'id'>, frequency: RecurrenceFrequency }) => void;
   onCancel: () => void;
-  onNavigateSubscriptions?: () => void; // Optional prop to jump to subscriptions view
+  onNavigateSubscriptions?: () => void;
 }
 
 export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAdd, onCancel, onNavigateSubscriptions }) => {
@@ -58,10 +58,8 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
         ? 'bg-emerald-500/10' 
         : (isRecurring ? 'bg-vibrant-purple/10' : 'bg-rose-500/10')}
     `}>
-      {/* Immersive Background Blur */}
       <div className="absolute inset-0 bg-white/90 dark:bg-slate-950/90 backdrop-blur-[100px] z-0"></div>
       
-      {/* Decorative Blobs */}
       <div className={`absolute top-0 right-0 w-80 h-80 blur-[100px] opacity-30 rounded-full transition-all duration-700 -translate-y-1/2 translate-x-1/2
         ${type === TransactionType.INCOME 
             ? 'bg-emerald-500' 
@@ -74,7 +72,7 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
                 {isRecurring ? 'New Subscription' : 'New Record'}
             </h2>
             <p className="text-slate-500 font-medium">
-                {isRecurring ? 'Set up a recurring billing' : `Capture your ${type.toLowerCase()} details`}
+                {isRecurring ? 'Set up recurring billing' : `Capture your ${type.toLowerCase()} details`}
             </p>
         </div>
         <button onClick={onCancel} className="bg-slate-200/50 dark:bg-white/10 p-3 rounded-2xl hover:bg-slate-300 dark:hover:bg-white/20 transition-all active:scale-90">
@@ -83,13 +81,12 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
       </div>
 
       <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto px-8 pb-32 space-y-8 no-scrollbar">
-        {/* Mode & Type Toggles */}
         <div className="space-y-4">
             <div className="glass-panel p-1.5 rounded-[1.8rem] flex relative overflow-hidden">
                 <button
                     type="button"
                     onClick={() => setType(TransactionType.EXPENSE)}
-                    className={`flex-1 py-4 text-xs font-bold rounded-2xl transition-all duration-500 z-10 ${
+                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-500 z-10 ${
                     type === TransactionType.EXPENSE ? 'bg-slate-800 text-white shadow-xl' : 'text-slate-500'
                     }`}
                 >
@@ -100,9 +97,9 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
                     onClick={() => {
                         setType(TransactionType.INCOME);
                         setCategory('Income');
-                        setIsRecurring(false); // Usually income is manual or handled separately
+                        setIsRecurring(false);
                     }}
-                    className={`flex-1 py-4 text-xs font-bold rounded-2xl transition-all duration-500 z-10 ${
+                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all duration-500 z-10 ${
                     type === TransactionType.INCOME ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30' : 'text-slate-500'
                     }`}
                 >
@@ -111,12 +108,12 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
             </div>
 
             {type === TransactionType.EXPENSE && (
-                <div className="glass-panel p-1.5 rounded-[1.8rem] flex relative overflow-hidden border-indigo-100 dark:border-indigo-900/30">
+                <div className="glass-panel p-1.5 rounded-[1.8rem] flex relative overflow-hidden">
                     <button
                         type="button"
                         onClick={() => setIsRecurring(false)}
                         className={`flex-1 py-3 text-[10px] uppercase tracking-widest font-black rounded-2xl transition-all duration-500 z-10 ${
-                        !isRecurring ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-400'
+                        !isRecurring ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400'
                         }`}
                     >
                         One-Time
@@ -125,7 +122,7 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
                         type="button"
                         onClick={() => setIsRecurring(true)}
                         className={`flex-1 py-3 text-[10px] uppercase tracking-widest font-black rounded-2xl transition-all duration-500 z-10 ${
-                        isRecurring ? 'bg-vibrant-purple text-white shadow-lg shadow-vibrant-purple/40' : 'text-slate-400'
+                        isRecurring ? 'bg-vibrant-purple text-white shadow-lg' : 'text-slate-400'
                         }`}
                     >
                         Recurring
@@ -134,7 +131,6 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
             )}
         </div>
 
-        {/* Amount */}
         <div className="text-center py-4">
           <div className="relative inline-block w-full">
             <input
@@ -155,11 +151,10 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
           </div>
         </div>
 
-        {/* Recurring Frequency Selector */}
         {isRecurring && type === TransactionType.EXPENSE && (
             <div className="space-y-4 animate-in slide-in-from-top duration-500">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-                    <Clock size={12} /> Billing Cycle
+                    <Clock size={12} /> Cycle
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                     {frequencyOptions.map((opt) => (
@@ -169,7 +164,7 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
                             onClick={() => setFrequency(opt.value)}
                             className={`py-3 rounded-xl text-[10px] font-bold transition-all border ${
                                 frequency === opt.value
-                                    ? 'bg-vibrant-purple border-vibrant-purple text-white shadow-lg shadow-vibrant-purple/30 scale-105'
+                                    ? 'bg-vibrant-purple border-vibrant-purple text-white shadow-lg scale-105'
                                     : 'bg-white/40 dark:bg-white/5 border-transparent text-slate-500'
                             }`}
                         >
@@ -180,13 +175,12 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
             </div>
         )}
 
-        {/* Category Grid */}
         {type === TransactionType.EXPENSE && (
           <div className="space-y-4">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Choose Category</label>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Category</label>
             <div className="grid grid-cols-3 gap-3">
               {categories.map((cat) => {
-                const CategoryIcon = getCategoryIcon(cat);
+                const Icon = getCategoryIcon(cat);
                 return (
                   <button
                     key={cat}
@@ -194,15 +188,15 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
                     onClick={() => setCategory(cat)}
                     className={`py-4 px-2 text-[10px] font-bold rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${
                       category === cat
-                        ? 'bg-white dark:bg-slate-800 border-vibrant-cyan shadow-xl scale-105 text-vibrant-cyan'
-                        : 'bg-white/20 dark:bg-white/5 border-transparent text-slate-500 dark:text-slate-400'
+                        ? 'bg-white dark:bg-slate-800 border-brand-500 shadow-xl scale-105 text-brand-600'
+                        : 'bg-white/20 dark:bg-white/5 border-transparent text-slate-500'
                     }`}
                   >
                     <div 
                       className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${category === cat ? 'scale-110 shadow-md' : 'opacity-60 grayscale'}`}
                       style={{ backgroundColor: getCategoryColor(cat) }}
                     >
-                      <CategoryIcon size={16} />
+                      <Icon size={16} />
                     </div>
                     {cat}
                   </button>
@@ -212,22 +206,21 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
           </div>
         )}
 
-        {/* Description & Date */}
         <div className="glass-panel p-6 rounded-[2rem] space-y-4">
             <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Details</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Description</label>
                 <input
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder={isRecurring ? 'Subscription name (e.g. Netflix)' : (type === TransactionType.INCOME ? 'Where from?' : 'What for?')}
+                    placeholder={isRecurring ? 'Subscription name' : 'What was it for?'}
                     className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-2 focus:border-brand-500 outline-none transition-colors text-lg font-medium text-slate-800 dark:text-white"
                 />
             </div>
 
             <div className="pt-2">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                    {isRecurring ? 'First Bill Date' : 'Transaction Date'}
+                    {isRecurring ? 'Next Bill' : 'Date'}
                 </label>
                 <div className="flex items-center gap-3">
                     <Calendar size={18} className="text-slate-400" />
@@ -246,24 +239,14 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
           <Button 
             type="submit" 
             fullWidth 
-            className={`py-6 rounded-3xl text-xl shadow-2xl transition-all duration-500
+            className={`py-6 rounded-3xl text-xl shadow-2xl
                 ${type === TransactionType.INCOME 
-                    ? 'from-emerald-500 to-teal-600 shadow-emerald-500/30' 
-                    : (isRecurring ? 'from-indigo-600 to-vibrant-purple shadow-vibrant-purple/40' : 'from-rose-500 to-pink-600 shadow-rose-500/30')}
+                    ? 'from-emerald-500 to-teal-600' 
+                    : (isRecurring ? 'from-indigo-600 to-vibrant-purple' : 'from-rose-500 to-pink-600')}
             `}
           >
-            <Check size={24} /> {isRecurring ? 'Activate Subscription' : 'Confirm Record'}
+            <Check size={24} /> {isRecurring ? 'Add Subscription' : 'Add Record'}
           </Button>
-
-          {isRecurring && onNavigateSubscriptions && (
-              <button
-                type="button"
-                onClick={onNavigateSubscriptions}
-                className="w-full py-4 text-xs font-bold text-slate-500 hover:text-vibrant-purple transition-colors flex items-center justify-center gap-2 group"
-              >
-                Already have this subscription? <span className="underline group-hover:no-underline">Manage list</span> <ArrowRight size={14} />
-              </button>
-          )}
         </div>
       </form>
     </div>

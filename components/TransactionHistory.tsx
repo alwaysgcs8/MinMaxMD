@@ -60,7 +60,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
   }, [filteredTransactions, sortKey]);
 
   return (
-    <div className="h-full flex flex-col pb-32 animate-in fade-in duration-500 overflow-hidden">
+    <div className="flex flex-col h-full pb-32 animate-in fade-in duration-500 overflow-hidden bg-transparent">
       {/* Header */}
       <div className="flex justify-between items-start px-6 pt-safe-top pb-4 shrink-0">
         <div>
@@ -110,7 +110,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
                 sortKey === 'amount'
                   ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30'
-                  : 'bg-white/40 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border border-white/40 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                  : 'text-slate-600 dark:text-slate-400 border border-white/40 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
               }`}
             >
               <DollarSign size={16} />
@@ -124,8 +124,8 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
         </div>
       </div>
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 space-y-6 no-scrollbar touch-pan-y" style={{ touchAction: 'pan-y' }}>
+      {/* List - Applied strict scrolling constraints */}
+      <div className="flex-1 px-6 space-y-6 no-scrollbar scroll-y-only">
         {Object.keys(groupedTransactions).length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400">
                 <Filter size={48} className="mb-4 opacity-20" />
@@ -134,30 +134,30 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
         ) : (
             Object.entries(groupedTransactions).map(([groupTitle, txs]) => (
                 <div key={groupTitle} className="space-y-3">
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky top-0 bg-[#fdfdff]/90 dark:bg-[#020617]/90 backdrop-blur-sm py-2 z-10">
+                    <h3 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] sticky top-0 bg-transparent backdrop-blur-sm py-2 z-10">
                         {groupTitle}
                     </h3>
                     {txs.map(t => {
-                        const CategoryIcon = getCategoryIcon(t.category);
+                        const Icon = getCategoryIcon(t.category);
                         return (
                             <div 
                                 key={t.id} 
                                 onClick={() => onSelectTransaction(t)}
-                                className="group flex items-center p-4 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm backdrop-blur-md transition-all active:scale-95 cursor-pointer hover:bg-white/60 dark:hover:bg-slate-800/60"
+                                className="group flex items-center p-4 rounded-3xl glass-panel border border-white/60 dark:border-white/5 shadow-sm transition-all active:scale-95 cursor-pointer hover:bg-white/60 dark:hover:bg-slate-800/60"
                             >
                                 <div 
-                                    className="w-12 h-12 rounded-[1rem] flex items-center justify-center text-white shrink-0 shadow-md"
-                                    style={{ backgroundColor: getCategoryColor(t.category), opacity: 0.9 }}
+                                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-md"
+                                    style={{ backgroundColor: getCategoryColor(t.category) }}
                                 >
-                                    <CategoryIcon size={20} />
+                                    <Icon size={20} />
                                 </div>
                                 <div className="ml-4 flex-1 min-w-0">
                                     <p className="font-bold text-slate-800 dark:text-slate-100 truncate">{t.description}</p>
-                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                                        {new Date(t.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                                        {new Date(t.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                                     </p>
                                 </div>
-                                <div className={`font-bold shrink-0 ml-2 ${t.type === TransactionType.INCOME ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}>
+                                <div className={`font-bold shrink-0 ml-2 ${t.type === TransactionType.INCOME ? 'text-emerald-600' : 'text-slate-800 dark:text-white'}`}>
                                     {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}
                                 </div>
                             </div>

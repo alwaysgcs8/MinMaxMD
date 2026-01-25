@@ -338,10 +338,8 @@ const App: React.FC = () => {
   if (!isLoaded) return null;
 
   return (
-    // min-h-full ensures the app content stretches to fill the screen
-    <div className="min-h-full w-full flex flex-col bg-transparent">
-      {/* Main content expands to fill available space */}
-      <main className="flex-1">
+    <div className="flex-1 w-full flex flex-col bg-transparent overflow-hidden">
+      <main className="flex-1 overflow-hidden">
         {renderView()}
       </main>
 
