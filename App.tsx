@@ -355,6 +355,8 @@ const App: React.FC = () => {
 
   if (!isLoaded) return null;
 
+  const hideNav = [View.ADD, View.SETTINGS, View.EDIT, View.EDIT_SUBSCRIPTION, View.BUDGET].includes(currentView);
+
   return (
     <div className="flex-1 w-full h-full flex flex-col bg-transparent overflow-hidden relative">
       <main 
@@ -373,7 +375,7 @@ const App: React.FC = () => {
           <div className="fixed inset-y-0 left-0 w-1 bg-brand-500/30 blur-sm pointer-events-none z-[150]" />
       )}
 
-      {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && currentView !== View.EDIT_SUBSCRIPTION && currentView !== View.BUDGET && (
+      {!hideNav && (
         <BottomNav currentView={currentView} onViewChange={setCurrentView} isVisible={isNavVisible} />
       )}
     </div>
