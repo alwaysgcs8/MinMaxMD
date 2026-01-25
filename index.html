@@ -6,7 +6,7 @@
     <title>MinMaxMD</title>
     
     <!-- Increment version to force PWA manifest refresh -->
-    <link rel="manifest" href="/manifest.json?v=21" />
+    <link rel="manifest" href="/manifest.json?v=22" />
     
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
@@ -57,17 +57,6 @@
         window.addEventListener('DOMContentLoaded', () => {
           document.body.style.backgroundColor = bgColor;
         });
-
-        // Stability Fix: App height using innerHeight instead of visualViewport
-        function setAppHeight() {
-          const h = window.innerHeight;
-          document.documentElement.style.setProperty('--app-height', `${h}px`);
-        }
-
-        setAppHeight();
-        window.addEventListener('resize', setAppHeight);
-        window.addEventListener('orientationchange', setAppHeight);
-        window.addEventListener('pageshow', setAppHeight); // Crucial for iOS PWA resume
       })();
     </script>
 
@@ -88,8 +77,10 @@
                          linear-gradient(180deg, #020617 0%, #0f172a 100%);
       }
 
+      /* 1) Make the page itself fill the screen reliably on iOS */
       html, body {
         height: 100%;
+        width: 100%;
         margin: 0;
         padding: 0;
         overflow: hidden;
@@ -102,30 +93,35 @@
       }
 
       body {
-        width: 100vw;
         font-family: 'Outfit', sans-serif;
         -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
         position: relative;
+        min-height: 100svh;              /* iOS “stable” viewport */
+        min-height: 100dvh;              /* modern dynamic viewport */
+        min-height: -webkit-fill-available; /* older iOS fallback */
+        display: flex;                   /* important */
+        flex-direction: column;
       }
 
+      /* 2) Root must stretch */
       #root {
+        flex: 1;                         /* key stretch */
         position: relative;
         z-index: 10;
-        height: var(--app-height);
-        min-height: 100svh; /* Stable fallback for iOS */
+        min-height: 100svh;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
         background: transparent;
       }
 
+      /* 3) Background must be truly viewport-attached */
       #app-background {
         position: fixed;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0; /* Ensure it reaches the bottom of the device viewport */
+        left: 0; 
+        right: 0; 
+        top: 0; 
+        bottom: 0; 
         z-index: 0;
         pointer-events: none;
         background: var(--app-grad-light) !important;

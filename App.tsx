@@ -358,7 +358,7 @@ const App: React.FC = () => {
   const hideNav = [View.ADD, View.SETTINGS, View.EDIT, View.EDIT_SUBSCRIPTION, View.BUDGET].includes(currentView);
 
   return (
-    <div className="flex-1 w-full h-full flex flex-col bg-transparent overflow-hidden relative">
+    <div className="flex-1 w-full min-h-[100svh] flex flex-col bg-transparent overflow-hidden relative">
       <main 
         className="flex-1 flex flex-col overflow-hidden w-full h-full will-change-transform" 
         style={{ 
