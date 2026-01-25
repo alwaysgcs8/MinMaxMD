@@ -17,7 +17,6 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
     setLoading(true);
     setAnalysis('');
     
-    // Artificial minimum load time for better UX feel
     const startTime = Date.now();
     const result = await getBudgetAnalysis(transactions);
     const endTime = Date.now();
@@ -32,11 +31,9 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
     setHasFetched(true);
   };
 
-  // Simple Markdown Parser to avoid regex lookbehind issues in libraries
   const renderMarkdown = (text: string) => {
     const lines = text.split('\n');
     return lines.map((line, index) => {
-      // Bold parsing helper
       const parseBold = (str: string) => {
         const parts = str.split('**');
         return parts.map((part, i) => 
@@ -44,7 +41,6 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
         );
       };
 
-      // Headers
       if (line.startsWith('### ')) {
         return <h3 key={index} className="text-lg font-bold mt-4 mb-2 text-slate-800 dark:text-white">{parseBold(line.replace('### ', ''))}</h3>;
       }
@@ -52,7 +48,6 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
         return <h2 key={index} className="text-xl font-bold mt-5 mb-3 text-slate-800 dark:text-white">{parseBold(line.replace('## ', ''))}</h2>;
       }
       
-      // Lists
       if (line.startsWith('1. ')) {
         return (
           <div key={index} className="ml-4 mb-2 flex gap-2">
@@ -70,20 +65,18 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
         );
       }
 
-      // Empty lines
       if (!line.trim()) {
         return <div key={index} className="h-2"></div>;
       }
 
-      // Paragraphs
       return <p key={index} className="mb-2 text-slate-700 dark:text-slate-300 leading-relaxed">{parseBold(line)}</p>;
     });
   };
 
   return (
-    <div className="h-full flex flex-col pb-32 animate-in fade-in duration-700">
-       <header className="px-6 pt-safe-top pb-4">
-        <div className="flex items-center gap-3 mb-2">
+    <div className="h-full flex flex-col bg-transparent animate-in fade-in duration-700">
+       <header className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-4 bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm">
+        <div className="flex items-center gap-3 mb-1">
             <div className="bg-gradient-to-br from-brand-400 to-purple-500 p-2 rounded-xl text-white shadow-lg shadow-brand-500/30">
                 <Bot size={24} />
             </div>
@@ -92,9 +85,10 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
         <p className="text-slate-500 dark:text-slate-400 font-medium">Smart insights for your wallet</p>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-4 no-scrollbar">
+      <div className="flex-1 overflow-y-auto px-6 pt-4 no-scrollbar scroll-y-only">
+        <div className="h-28 sm:h-32"></div>
         {!hasFetched && !loading && (
-            <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-80">
+            <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-6 opacity-80">
                 <div className="relative">
                     <div className="absolute inset-0 bg-brand-400 blur-2xl opacity-20 rounded-full animate-pulse-slow"></div>
                     <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl p-8 rounded-[2rem] shadow-glass border border-white/60 dark:border-white/10 relative">
@@ -118,13 +112,13 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
         )}
 
         {analysis && !loading && (
-             <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-2xl p-8 rounded-[2.5rem] shadow-glass border border-white/60 dark:border-white/10">
+             <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-2xl p-8 rounded-[2.5rem] shadow-glass border border-white/60 dark:border-white/10 mb-10">
                 {renderMarkdown(analysis)}
             </div>
         )}
       </div>
 
-      <div className="px-6 pt-6">
+      <div className="px-6 pt-6 pb-32">
         <button
             onClick={fetchAnalysis}
             disabled={loading}

@@ -46,18 +46,19 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-700">
-      <header className="shrink-0 px-6 pt-safe-top pb-6">
-        <div className="flex items-center gap-3 mb-2">
+      <header className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-4 bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm">
+        <div className="flex items-center gap-3 mb-1">
             <div className="bg-gradient-to-br from-indigo-500 to-vibrant-purple p-2.5 rounded-2xl text-white shadow-lg">
                 <Repeat size={24} />
             </div>
             <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Subscriptions</h1>
         </div>
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Manage your recurring billing</p>
+        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Manage your recurring billing</p>
       </header>
 
-      <div className="flex-1 pb-40 scroll-y-only no-scrollbar">
-        <div className="px-6 mb-8 shrink-0">
+      <div className="flex-1 pb-40 scroll-y-only no-scrollbar px-6">
+        <div className="h-28 sm:h-32 shrink-0"></div>
+        <div className="mb-8 shrink-0">
           <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 p-8 shadow-2xl">
               <div className="absolute top-0 right-0 w-40 h-40 bg-vibrant-purple/20 blur-[60px] rounded-full"></div>
               <div className="relative z-10 flex flex-col gap-6">
@@ -79,7 +80,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
           </div>
         </div>
 
-        <div className="px-6 space-y-4">
+        <div className="space-y-4">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Active Recurrences</h3>
           {expenseSubs.length === 0 ? (
               <div className="glass-panel p-12 rounded-[2rem] text-center space-y-4 border-dashed border-2 border-slate-200 dark:border-white/5">
@@ -87,7 +88,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
                       <CreditCard size={32} />
                   </div>
                   <p className="text-slate-400 font-medium">No recurring expenses tracked yet.</p>
-                  <button onClick={() => onNavigate(View.ADD)} className="text-brand-500 font-bold text-sm">+ Add First Subscription</button>
+                  <button onClick={() => onNavigate(View.ADD)} className="text-brand-500 font-bold text-sm active:scale-95">+ Add First Subscription</button>
               </div>
           ) : (
               expenseSubs.map(sub => {
@@ -109,7 +110,7 @@ export const Subscriptions: React.FC<SubscriptionsProps> = ({ recurringTransacti
                               <div className={`text-[10px] font-black uppercase mb-1 flex items-center justify-end gap-1 ${daysLeft <= 3 ? 'text-rose-500' : 'text-emerald-500'}`}>
                                   <Bell size={10} /> {daysLeft === 0 ? 'Today' : `In ${daysLeft} days`}
                               </div>
-                              <button onClick={() => confirm('Stop this recurring payment?') && onDelete(sub.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors">
+                              <button onClick={() => confirm('Stop this recurring payment?') && onDelete(sub.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90">
                                   <Trash2 size={18} />
                               </button>
                           </div>

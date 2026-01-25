@@ -415,28 +415,29 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-700">
-      <div className="shrink-0 flex justify-between items-start px-6 pt-safe-top pb-4">
+      <header className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-4 flex justify-between items-start bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10">
         <div>
             <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 pt-1">
             <button 
                 onClick={() => setIsCustomizing(true)}
-                className="p-3 bg-brand-500 text-white rounded-full shadow-lg shadow-brand-500/30 flex items-center justify-center"
+                className="p-3 bg-brand-500 text-white rounded-full shadow-lg shadow-brand-500/30 flex items-center justify-center active:scale-95"
             >
                 <Layout size={22} />
             </button>
             <button 
                 onClick={() => onNavigate(View.SETTINGS)}
-                className="p-3 bg-white/50 dark:bg-white/10 rounded-full border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300"
+                className="p-3 bg-white/50 dark:bg-white/10 rounded-full border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95"
             >
                 <SettingsIcon size={22} />
             </button>
         </div>
-      </div>
+      </header>
 
       <div className="flex-1 px-6 space-y-6 pb-32 scroll-y-only no-scrollbar">
+        <div className="h-28 sm:h-32"></div>
         {activeWidgets.length === 0 && (
              <div className="text-center py-12 text-slate-400 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                 <p>No widgets active.</p>
@@ -452,8 +453,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
 
       {isCustomizing && (
         <>
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" onClick={() => setIsCustomizing(false)} />
-            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 z-[70] rounded-t-[2.5rem] p-6 pb-safe-bottom shadow-2xl border-t border-white/10 animate-in slide-in-from-bottom duration-300">
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[110]" onClick={() => setIsCustomizing(false)} />
+            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 z-[120] rounded-t-[2.5rem] p-6 pb-safe-bottom shadow-2xl border-t border-white/10 animate-in slide-in-from-bottom duration-300">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Layout className="text-brand-500" /> Customize Dashboard

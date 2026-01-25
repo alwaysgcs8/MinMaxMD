@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Transaction, TransactionType, View } from '../types';
 import { getCategoryColor, getCategoryIcon } from '../constants';
-import { ArrowUpRight, ArrowDownRight, Settings as SettingsIcon, Target } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Settings as SettingsIcon, Target, Wallet, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -20,8 +20,7 @@ interface PeriodData {
 export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }) => {
   const [timeframe, setTimeframe] = useState<Timeframe>('monthly');
   const [selectedIndex, setSelectedIndex] = useState(12);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
+  
   const periods = useMemo((): PeriodData[] => {
     const list: PeriodData[] = [];
     const now = new Date();
@@ -38,7 +37,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
         end.setDate(now.getDate() - i);
         end.setHours(23, 59, 59, 999);
         label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : start.toLocaleDateString(undefined, { weekday: 'long' });
-        subLabel = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        subLabel = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
       } else if (timeframe === 'weekly') {
         const day = now.getDay();
         start.setDate(now.getDate() - day - (i * 7));
@@ -69,43 +68,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
   }, [timeframe]);
 
   useEffect(() => {
-    setSelectedIndex(12);
-    if (scrollRef.current) {
-      setTimeout(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
-        }
-      }, 0);
-    }
-  }, [timeframe]);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const scrollLeft = container.scrollLeft;
-    const itemWidth = container.offsetWidth;
-    const newIndex = Math.round(scrollLeft / itemWidth);
-    
-    if (newIndex !== selectedIndex && newIndex >= 0 && newIndex < periods.length) {
-      setSelectedIndex(newIndex);
-    }
-  };
+    setSelectedIndex(periods.length - 1);
+  }, [timeframe, periods.length]);
 
   const selectedPeriod = periods[selectedIndex];
 
-  const allPeriodStats = useMemo(() => {
-    return periods.map(p => {
-      let income = 0;
-      let expense = 0;
-      transactions.forEach(t => {
-        const tDate = new Date(t.date);
-        if (tDate >= p.startDate && tDate <= p.endDate) {
-          if (t.type === TransactionType.INCOME) income += t.amount;
-          else expense += t.amount;
-        }
-      });
-      return { income, expense, balance: income - expense };
+  const stats = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    transactions.forEach(t => {
+      const tDate = new Date(t.date);
+      if (tDate >= selectedPeriod.startDate && tDate <= selectedPeriod.endDate) {
+        if (t.type === TransactionType.INCOME) income += t.amount;
+        else expense += t.amount;
+      }
     });
-  }, [transactions, periods]);
+    return { income, expense, balance: income - expense };
+  }, [transactions, selectedPeriod]);
 
   const filteredTransactions = useMemo(() => {
     return transactions
@@ -117,176 +96,160 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
   }, [transactions, selectedPeriod]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+  };
+
+  const navigatePeriod = (dir: number) => {
+    const nextIdx = selectedIndex + dir;
+    if (nextIdx >= 0 && nextIdx < periods.length) {
+      setSelectedIndex(nextIdx);
+    }
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-transparent">
-      {/* Header */}
-      <div className="shrink-0 flex justify-between items-center px-6 pt-safe-top pb-2">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">
-            MinMax<span className="text-brand-500 font-black">MD</span>
+    <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
+      <header 
+        className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-2 flex justify-between items-center bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm"
+      >
+        <div className="flex items-center gap-2 py-1.5">
+          <div className="bg-brand-500 p-1.5 rounded-lg text-white shadow-neon">
+            <Wallet size={16} />
+          </div>
+          <h1 className="text-base font-black tracking-tight text-slate-900 dark:text-white uppercase">
+            Min<span className="text-brand-500">Max</span>
           </h1>
         </div>
         <div className="flex gap-2">
-          <button 
-            onClick={() => onNavigate(View.BUDGET)}
-            className="p-2.5 glass-panel rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all text-slate-600 dark:text-slate-300"
-          >
-            <Target size={22} />
+          <button onClick={() => onNavigate(View.BUDGET)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
+            <Target size={18} />
           </button>
-          <button 
-            onClick={() => onNavigate(View.SETTINGS)}
-            className="p-2.5 glass-panel rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all text-slate-600 dark:text-slate-300"
-          >
-            <SettingsIcon size={22} />
+          <button onClick={() => onNavigate(View.SETTINGS)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
+            <SettingsIcon size={18} />
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Main vertical scroll area - Locking horizontal jitter */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-32 scroll-y-only">
+      <div 
+        className="flex-1 overflow-y-auto no-scrollbar scroll-y-only pb-40"
+      >
+        <div className="h-16 sm:h-20"></div>
         
-        {/* Timeframe Tab Selector */}
-        <div className="px-6 py-4">
-          <div className="flex glass-panel p-1 rounded-2xl border border-white/40 dark:border-white/5 relative overflow-hidden">
+        {/* Timeframe Selector */}
+        <div className="px-6 pb-4">
+          <div className="flex glass-panel p-1 rounded-2xl overflow-hidden shadow-sm border border-white/20">
             {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf)}
-                className={`flex-1 py-2 text-[10px] uppercase tracking-widest font-black rounded-xl transition-all duration-300 relative z-10 ${
-                  timeframe === tf 
-                  ? 'text-white' 
-                  : 'text-slate-500 dark:text-slate-400'
+                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                  timeframe === tf ? 'bg-brand-500 text-white shadow-md scale-[1.02]' : 'text-slate-400 dark:text-slate-500'
                 }`}
               >
                 {tf}
-                {timeframe === tf && (
-                  <div className="absolute inset-0 bg-brand-500 -z-10 rounded-xl shadow-lg"></div>
-                )}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Swipeable Summary - Explicitly locked to horizontal only */}
-        <div 
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex no-scrollbar w-full h-auto scroll-x-only snap-x snap-mandatory"
-        >
-          {periods.map((p, idx) => {
-            const stats = allPeriodStats[idx];
-            const isCurrent = idx === 12;
-            const historyLabel = isCurrent ? 'Current' : `-${12 - idx} ${timeframe.replace('ly', '')}${12-idx > 1 ? 's' : ''}`;
+        {/* Hero Balance Card - Balanced Proportions */}
+        <div className="px-6 mb-8">
+          <div className="bg-slate-900 dark:bg-slate-800/90 rounded-[2.5rem] p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl border border-white/5 ring-1 ring-white/10">
+            {/* Glow effect */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/20 blur-[60px] rounded-full"></div>
             
-            return (
-              <div 
-                key={idx}
-                className="flex-none w-full snap-start px-6"
-              >
-                <div className="relative overflow-hidden rounded-[2.8rem] bg-gradient-to-br from-brand-600 to-indigo-950 p-[1.5px] shadow-2xl shadow-brand-500/20 transition-transform duration-300">
-                  <div className="relative p-8 rounded-[2.7rem] bg-slate-900/10 dark:bg-slate-900/60 backdrop-blur-3xl overflow-hidden min-h-[240px]">
-                    <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand-400/10 rounded-full blur-[70px]"></div>
-                    <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-vibrant-purple/10 rounded-full blur-[70px]"></div>
-                    
-                    <div className="relative z-10">
-                      <div className="flex justify-between items-start">
-                        <div className="max-w-[70%]">
-                          <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
-                            {p.label} Balance
-                          </p>
-                          <h2 className="text-4xl font-bold tracking-tighter text-white break-words">
-                            {formatCurrency(stats.balance)}
-                          </h2>
-                          <p className="text-white/40 text-[11px] font-bold mt-2">
-                            {p.subLabel}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end shrink-0">
-                            <div className="bg-white/10 px-3 py-1 rounded-full text-[9px] font-black uppercase text-white/90 border border-white/20 backdrop-blur-sm">
-                                {historyLabel}
-                            </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-4 mt-8">
-                        <div className="flex-1 bg-white/10 rounded-[1.8rem] p-4 border border-white/10 backdrop-blur-md">
-                          <p className="text-[9px] font-black uppercase text-emerald-400 flex items-center gap-1 mb-1">
-                            <ArrowUpRight size={12} /> Income
-                          </p>
-                          <p className="font-bold text-lg text-white">{formatCurrency(stats.income)}</p>
-                        </div>
-                        <div className="flex-1 bg-white/10 rounded-[1.8rem] p-4 border border-white/10 backdrop-blur-md">
-                          <p className="text-[9px] font-black uppercase text-rose-400 flex items-center gap-1 mb-1">
-                            <ArrowDownRight size={12} /> Expense
-                          </p>
-                          <p className="font-bold text-lg text-white">{formatCurrency(stats.expense)}</p>
-                        </div>
-                      </div>
-                    </div>
+            <div className="relative z-10 flex flex-col gap-6">
+              {/* Top Row: Period & Nav */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <button 
+                    onClick={() => navigatePeriod(-1)}
+                    disabled={selectedIndex === 0}
+                    className="p-1.5 bg-white/5 hover:bg-white/10 rounded-full disabled:opacity-20 transition-all active:scale-90"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <div className="flex flex-col ml-1">
+                    <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.1em] leading-none">{selectedPeriod.label}</p>
+                    <p className="text-slate-600 text-[9px] font-bold uppercase mt-1 tracking-wider">{selectedPeriod.subLabel}</p>
+                  </div>
+                  <button 
+                    onClick={() => navigatePeriod(1)}
+                    disabled={selectedIndex === periods.length - 1}
+                    className="p-1.5 bg-white/5 hover:bg-white/10 rounded-full disabled:opacity-20 transition-all active:scale-90"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+                <div className="bg-white/5 px-2.5 py-1 rounded-full border border-white/5 backdrop-blur-sm">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Balance</p>
+                </div>
+              </div>
+
+              {/* Middle Row: Main Balance */}
+              <div className="py-2">
+                <h2 className="text-5xl sm:text-6xl font-black tracking-tighter bg-gradient-to-br from-white via-white to-slate-500 bg-clip-text text-transparent">
+                  {formatCurrency(stats.balance)}
+                </h2>
+              </div>
+              
+              {/* Bottom Row: In/Out Breakdown */}
+              <div className="flex gap-3 mt-1">
+                <div className="flex-1 bg-white/[0.03] rounded-2xl p-4 border border-white/[0.05] backdrop-blur-sm flex items-center justify-between group">
+                  <div>
+                    <p className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1 flex items-center gap-1">
+                      <ArrowUpRight size={12} strokeWidth={3} /> In
+                    </p>
+                    <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(stats.income)}</p>
+                  </div>
+                </div>
+                <div className="flex-1 bg-white/[0.03] rounded-2xl p-4 border border-white/[0.05] backdrop-blur-sm flex items-center justify-between group">
+                  <div>
+                    <p className="text-rose-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1 flex items-center gap-1">
+                      <ArrowDownRight size={12} strokeWidth={3} /> Out
+                    </p>
+                    <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(stats.expense)}</p>
                   </div>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          </div>
         </div>
 
-        {/* Pagination */}
-        <div className="flex justify-center gap-1.5 mt-6 mb-10">
-          {periods.slice(7).map((_, i) => {
-            const actualIdx = i + 7;
-            return (
-              <div 
-                key={actualIdx} 
-                className={`h-1.5 rounded-full transition-all duration-300 ${selectedIndex === actualIdx ? 'w-6 bg-brand-500' : 'w-1.5 bg-slate-300 dark:bg-slate-700/50'}`}
-              />
-            );
-          })}
-        </div>
-
-        {/* Activity Section */}
+        {/* Recent Activity List */}
         <div className="px-6 space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Activity</h3>
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                {selectedIndex === 12 ? 'Latest' : selectedPeriod.label}
-            </span>
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.15em]">Activity</h3>
+            <button 
+                onClick={() => onNavigate(View.HISTORY)}
+                className="text-xs font-bold text-brand-500 uppercase tracking-widest flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+            >
+                Timeline <ChevronRight size={14} />
+            </button>
           </div>
 
           {filteredTransactions.length === 0 ? (
-            <div className="text-center py-20 text-slate-400 glass-panel rounded-[2.5rem] border-dashed border-2 border-slate-100 dark:border-white/5 flex flex-col items-center justify-center">
-              <p className="font-semibold text-sm">No activity recorded for this period.</p>
-              <button 
-                onClick={() => onNavigate(View.ADD)} 
-                className="mt-4 text-brand-500 font-bold text-xs bg-brand-500/10 px-4 py-2 rounded-full"
-              >
-                Log a Transaction
-              </button>
+            <div className="py-16 text-center text-slate-400 bg-white/20 dark:bg-white/5 rounded-[2.5rem] border border-dashed border-slate-200 dark:border-white/10 shadow-inner">
+              <p className="text-sm font-semibold tracking-wide">No transactions this period</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredTransactions.map(t => {
+              {filteredTransactions.slice(0, 8).map(t => {
                 const Icon = getCategoryIcon(t.category);
                 return (
-                  <div 
-                    key={t.id} 
-                    className="group flex items-center p-4 rounded-[1.8rem] glass-panel border border-white/40 dark:border-white/5 shadow-sm transition-all active:scale-[0.98]"
-                  >
+                  <div key={t.id} className="glass-panel p-4 rounded-[1.5rem] flex items-center gap-4 border-white/40 shadow-sm active:scale-[0.98] transition-all hover:bg-white/80 dark:hover:bg-slate-800/80">
                     <div 
                       className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg"
                       style={{ backgroundColor: getCategoryColor(t.category) }}
                     >
-                      <Icon size={20} />
+                      <Icon size={20} strokeWidth={2.5} />
                     </div>
-                    <div className="ml-4 flex-1 min-w-0">
-                      <p className="font-bold text-slate-800 dark:text-slate-100 truncate">{t.description}</p>
-                      <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-wide">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-[15px] text-slate-900 dark:text-slate-100 truncate tracking-tight">{t.description}</p>
+                      <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide mt-0.5">
                         {t.category} • {new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </p>
                     </div>
-                    <div className={`font-bold shrink-0 ml-2 ${t.type === TransactionType.INCOME ? 'text-emerald-500' : 'text-slate-800 dark:text-white'}`}>
+                    <div className={`font-black text-[15px] text-right ${t.type === TransactionType.INCOME ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
                       {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}
                     </div>
                   </div>

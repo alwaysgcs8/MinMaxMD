@@ -6,8 +6,8 @@
     <title>MinMaxMD</title>
     
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
@@ -20,37 +20,26 @@
             colors: {
               brand: {
                 50: '#f0f9ff',
-                100: '#e0f2fe',
-                400: '#38bdf8',
-                500: '#0ea5e9',
-                600: '#2563eb',
-                700: '#1d4ed8',
-                900: '#1e3a8a',
+                400: '#22d3ee',
+                500: '#06b6d4',
+                600: '#0891b2',
+                700: '#0e7490',
               },
-              vibrant: {
-                pink: '#f472b6',
-                purple: '#a855f7',
-                cyan: '#22d3ee',
-                amber: '#fbbf24',
-                emerald: '#34d399',
-                rose: '#fb7185'
+              accent: {
+                purple: '#8b5cf6',
+                pink: '#ec4899',
+                indigo: '#6366f1'
               }
             },
             boxShadow: {
-              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
-              'neon-blue': '0 0 15px rgba(14, 165, 233, 0.4)',
-              'neon-purple': '0 0 15px rgba(168, 85, 247, 0.4)',
-              'neon-emerald': '0 0 15px rgba(52, 211, 153, 0.4)',
+              'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
+              'neon': '0 0 20px rgba(6, 182, 212, 0.2)',
             },
             animation: {
-              'aurora': 'aurora 20s infinite alternate linear',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               'float': 'float 6s ease-in-out infinite',
             },
             keyframes: {
-              aurora: {
-                '0%': { transform: 'rotate(0deg) scale(1)' },
-                '100%': { transform: 'rotate(3deg) scale(1.1)' }
-              },
               float: {
                 '0%, 100%': { transform: 'translateY(0)' },
                 '50%': { transform: 'translateY(-10px)' },
@@ -62,6 +51,11 @@
     </script>
     
     <script>
+      // Force dark mode check immediately to prevent white flash
+      const theme = localStorage.getItem('budget_wise_v2_theme');
+      const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) document.documentElement.classList.add('dark');
+
       function setAppHeight() {
         const h = (window.visualViewport?.height || window.innerHeight);
         document.documentElement.style.setProperty('--app-height', `${h}px`);
@@ -69,124 +63,94 @@
       setAppHeight();
       window.addEventListener('resize', setAppHeight);
       window.visualViewport?.addEventListener('resize', setAppHeight);
-      window.addEventListener('orientationchange', setAppHeight);
     </script>
 
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
       
       :root {
-        --bg-light: #fdfdff;
+        --bg-light: #f8fafc;
         --bg-dark: #020617;
       }
 
-      /* Base layout stability - forced hardware backgrounds */
-      html, body {
-        height: 100% !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: var(--bg-light) !important;
-        overflow: hidden !important;
-        -webkit-text-size-adjust: 100%;
-        position: fixed !important; /* Lock body to prevent system bounce revealing white */
+      /* CRITICAL: Synchronize html and body background to the theme to kill white seams */
+      html {
+        background-color: var(--bg-light);
+        height: 100%;
+        overflow: hidden;
       }
-
-      html.dark, html.dark body {
-        background: var(--bg-dark) !important;
+      html.dark {
+        background-color: var(--bg-dark);
       }
 
       body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background-color: transparent !important;
         font-family: 'Outfit', sans-serif;
+        -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
         overscroll-behavior: none;
+        position: fixed;
+        overflow: hidden;
       }
 
-      /* Root container setup using the measured dynamic height */
       #root {
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: var(--app-height) !important;
+        position: relative;
         z-index: 10;
+        height: var(--app-height);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        background: transparent !important;
-        transform: translateZ(0); /* GPU acceleration */
       }
 
-      /* Ultra-overdraw background for iOS safe area seams */
       #app-background {
-        position: fixed !important;
-        inset: -500px !important; /* Massive overdraw to prevent white leaks */
+        position: fixed;
+        inset: 0;
         z-index: 0;
         pointer-events: none;
-        overflow: hidden;
-        background: var(--bg-light) !important;
-        transform: translateZ(0);
-        will-change: transform;
+        background-color: var(--bg-light);
       }
-
       html.dark #app-background {
-        background: var(--bg-dark) !important;
+        background-color: var(--bg-dark);
       }
 
-      .bg-blob {
+      .mesh-gradient {
         position: absolute;
-        width: 120vmax;
-        height: 120vmax;
-        filter: blur(100px);
+        inset: -50%;
+        opacity: 0.4;
+        filter: blur(80px);
+        background: radial-gradient(circle at 20% 20%, #06b6d4 0%, transparent 40%),
+                    radial-gradient(circle at 80% 80%, #8b5cf6 0%, transparent 40%),
+                    radial-gradient(circle at 50% 50%, #ec4899 0%, transparent 40%);
+      }
+      html.dark .mesh-gradient {
         opacity: 0.2;
-        border-radius: 50%;
-        z-index: -1;
       }
 
-      .blob-1 { background: #38bdf8; top: -20%; left: -20%; animation: aurora 25s infinite alternate ease-in-out; }
-      .blob-2 { background: #a855f7; bottom: -20%; right: -20%; animation: aurora 20s infinite alternate-reverse ease-in-out; }
-      .blob-3 { background: #fb7185; top: 30%; left: 20%; width: 90vmax; height: 90vmax; animation: aurora 30s infinite alternate ease-in-out; opacity: 0.15; }
-
-      .dark .bg-blob { opacity: 0.25; }
-      .dark .blob-1 { background: #1e40af; }
-      .dark .blob-2 { background: #6b21a8; }
-      .dark .blob-3 { background: #9f1239; }
-
-      .pt-safe-top {
-        padding-top: max(1.5rem, env(safe-area-inset-top));
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
       }
-      
-      .pb-safe-bottom {
-        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+      html.dark .glass-panel {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
       }
+
+      .pt-safe { padding-top: env(safe-area-inset-top); }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-      .glass-panel {
-        background: rgba(255, 255, 255, 0.4);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-      }
-
-      .dark .glass-panel {
-        background: rgba(30, 41, 59, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-      }
-
-      /* Scrolling locks specifically for iOS stability */
       .scroll-y-only {
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
-      }
-      
-      .scroll-x-only {
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        -webkit-overflow-scrolling: touch;
-        touch-action: pan-x;
       }
     </style>
     
@@ -208,12 +172,10 @@
       }
     }
     </script>
-</head>
-  <body class="text-slate-900 dark:text-slate-100 selection:bg-brand-500/30">
+  </head>
+  <body class="text-slate-900 dark:text-slate-100">
     <div id="app-background">
-      <div class="bg-blob blob-1"></div>
-      <div class="bg-blob blob-2"></div>
-      <div class="bg-blob blob-3"></div>
+      <div class="mesh-gradient"></div>
     </div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>

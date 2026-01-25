@@ -207,20 +207,28 @@ const App: React.FC = () => {
     }
   }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded, user]);
 
-  // Handle window scrolling for Nav visibility
+  // Handle scrolling for Nav visibility - improved for internal scrollable divs
   useEffect(() => {
-    const handleScroll = () => {
-        const currentScrollY = window.scrollY;
-        if (currentScrollY < lastScrollY.current || currentScrollY < 50) {
+    const handleScroll = (e: Event) => {
+        const target = e.target as HTMLElement;
+        if (!target.classList || !target.classList.contains('scroll-y-only')) return;
+        
+        const currentScrollY = target.scrollTop;
+        const delta = currentScrollY - lastScrollY.current;
+
+        if (currentScrollY < 10) {
             setIsNavVisible(true);
-        } else if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        } else if (delta > 5 && currentScrollY > 50) {
             setIsNavVisible(false);
+        } else if (delta < -10) {
+            setIsNavVisible(true);
         }
+        
         lastScrollY.current = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
   }, []);
 
   const handleAddTransaction = (data: { transaction: Omit<Transaction, 'id'>, frequency: RecurrenceFrequency }) => {

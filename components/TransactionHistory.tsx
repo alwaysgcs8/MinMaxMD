@@ -61,71 +61,73 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
 
   return (
     <div className="flex flex-col h-full pb-32 animate-in fade-in duration-500 overflow-hidden bg-transparent">
-      {/* Header */}
-      <div className="flex justify-between items-start px-6 pt-safe-top pb-4 shrink-0">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-start px-6 pt-safe pb-4 bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm">
         <div>
             <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">History</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium">Your spending timeline</p>
         </div>
         <button 
             onClick={() => onNavigate(View.SETTINGS)}
-            className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300"
+            className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95 mt-1"
         >
             <SettingsIcon size={22} />
         </button>
-      </div>
+      </header>
 
-      {/* Search & Sort */}
-      <div className="px-6 mb-4 space-y-3 shrink-0">
-        <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input 
-                type="text" 
-                placeholder="Search transactions..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
+      {/* List Content */}
+      <div className="flex-1 space-y-6 no-scrollbar scroll-y-only px-6">
+        <div className="h-28 sm:h-32 shrink-0"></div>
+
+        {/* Search & Sort moved into scrollable area to maximize top-level view space or can stay fixed below header */}
+        <div className="space-y-3 shrink-0">
+          <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+              <input 
+                  type="text" 
+                  placeholder="Search transactions..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+          </div>
+
+          <div className="flex gap-3">
+              <button
+                onClick={() => handleSort('date')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+                  sortKey === 'date'
+                    ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30'
+                    : 'bg-white/40 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border border-white/40 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <Calendar size={16} />
+                Date
+                {sortKey === 'date' && (
+                    <div className={`transition-transform duration-300 ${sortDirection === 'asc' ? 'rotate-180' : ''}`}>
+                        <ArrowDown size={16} />
+                    </div>
+                )}
+              </button>
+              <button
+                onClick={() => handleSort('amount')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+                  sortKey === 'amount'
+                    ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30'
+                    : 'text-slate-600 dark:text-slate-400 border border-white/40 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <DollarSign size={16} />
+                Amount
+                {sortKey === 'amount' && (
+                    <div className={`transition-transform duration-300 ${sortDirection === 'asc' ? 'rotate-180' : ''}`}>
+                        <ArrowDown size={16} />
+                    </div>
+                )}
+              </button>
+          </div>
         </div>
 
-        <div className="flex gap-3">
-            <button
-              onClick={() => handleSort('date')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
-                sortKey === 'date'
-                  ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30'
-                  : 'bg-white/40 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border border-white/40 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
-              }`}
-            >
-              <Calendar size={16} />
-              Date
-              {sortKey === 'date' && (
-                  <div className={`transition-transform duration-300 ${sortDirection === 'asc' ? 'rotate-180' : ''}`}>
-                      <ArrowDown size={16} />
-                  </div>
-              )}
-            </button>
-            <button
-              onClick={() => handleSort('amount')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
-                sortKey === 'amount'
-                  ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30'
-                  : 'text-slate-600 dark:text-slate-400 border border-white/40 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
-              }`}
-            >
-              <DollarSign size={16} />
-              Amount
-              {sortKey === 'amount' && (
-                  <div className={`transition-transform duration-300 ${sortDirection === 'asc' ? 'rotate-180' : ''}`}>
-                      <ArrowDown size={16} />
-                  </div>
-              )}
-            </button>
-        </div>
-      </div>
-
-      {/* List - Applied strict scrolling constraints */}
-      <div className="flex-1 px-6 space-y-6 no-scrollbar scroll-y-only">
         {Object.keys(groupedTransactions).length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400">
                 <Filter size={48} className="mb-4 opacity-20" />

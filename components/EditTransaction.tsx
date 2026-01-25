@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '../types';
-import { Button } from './Button';
-import { Trash2, Check, ArrowLeft, Tag, Calendar, DollarSign, Type } from 'lucide-react';
+import { Trash2, Check, ArrowLeft, Tag, Calendar, Type } from 'lucide-react';
 
 interface EditTransactionProps {
   transaction: Transaction;
@@ -20,12 +19,13 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !description) return;
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || !description.trim()) return;
 
     onUpdate({
       ...transaction,
-      amount: parseFloat(amount),
-      description,
+      amount: numAmount,
+      description: description.trim(),
       category: type === TransactionType.INCOME ? 'Income' : category,
       type,
       date: new Date(date).toISOString(),
@@ -39,27 +39,34 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in slide-in-from-right duration-300">
+    <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in slide-in-from-right duration-500">
+      {/* Fixed Header */}
       <header className="shrink-0 px-6 pt-safe-top pb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-            <button onClick={onCancel} className="p-2 bg-white/50 dark:bg-white/10 rounded-full text-slate-600 dark:text-slate-300">
+            <button 
+              type="button"
+              onClick={onCancel} 
+              className="p-3 bg-white/50 dark:bg-white/10 rounded-full text-slate-600 dark:text-slate-300 border border-white/40 dark:border-white/5 shadow-sm active:scale-90 transition-all"
+            >
                 <ArrowLeft size={24} />
             </button>
             <div>
                 <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Edit</h1>
-                <p className="text-slate-500 dark:text-slate-400 font-medium">Refine transaction</p>
+                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Update your record</p>
             </div>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar pb-32 space-y-8 scroll-y-only px-6">
-        {/* Type Toggle */}
-        <div className="p-1.5 glass-panel rounded-3xl flex backdrop-blur-sm border-white/50">
+      {/* Scrollable Content - Strictly vertical */}
+      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-40 space-y-8 scroll-y-only px-6">
+        
+        {/* Type Toggle Container */}
+        <div className="p-1.5 glass-panel rounded-[2rem] flex backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-glass overflow-hidden">
           <button
             type="button"
             onClick={() => setType(TransactionType.EXPENSE)}
-            className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-2xl transition-all duration-500 ${
-              type === TransactionType.EXPENSE ? 'bg-slate-800 text-white shadow-xl scale-[1.02]' : 'text-slate-500 dark:text-slate-400'
+            className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all duration-500 ${
+              type === TransactionType.EXPENSE ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xl scale-[1.02]' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
             Expense
@@ -70,7 +77,7 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
               setType(TransactionType.INCOME);
               setCategory('Income');
             }}
-            className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-2xl transition-all duration-500 ${
+            className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all duration-500 ${
               type === TransactionType.INCOME ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 scale-[1.02]' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
@@ -78,9 +85,9 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
           </button>
         </div>
 
-        {/* Amount Section */}
-        <div className="text-center py-4 bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/10 shadow-glass">
-          <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest">Transaction Amount</label>
+        {/* Amount Input with Theme-Aware Colors */}
+        <div className="text-center py-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[3rem] p-10 border border-white/60 dark:border-white/10 shadow-glass overflow-hidden">
+          <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-[0.2em]">Transaction Amount</label>
           <div className="relative inline-block w-full">
             <input
               type="number"
@@ -88,84 +95,75 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className={`w-full bg-transparent text-center text-7xl font-bold focus:outline-none transition-colors duration-500 
+              className={`w-full bg-transparent text-center text-6xl sm:text-7xl font-bold focus:outline-none transition-colors duration-500 
                 ${type === TransactionType.INCOME ? 'text-emerald-500' : 'text-rose-500'}
               `}
               required
             />
-            <div className="text-slate-400 font-bold text-2xl mt-2 opacity-50">$</div>
+            <div className="text-slate-400 dark:text-slate-600 font-bold text-xl mt-4 opacity-50 uppercase tracking-widest">$ USD</div>
           </div>
         </div>
 
-        {/* Details Panel */}
-        <div className="glass-panel p-6 rounded-[2.5rem] space-y-6 border-white/50 shadow-glass">
-            <div>
-                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
+        {/* Form Fields Panel */}
+        <div className="glass-panel p-8 rounded-[3rem] space-y-8 border-white/60 dark:border-white/10 shadow-glass overflow-hidden">
+            <div className="w-full">
+                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">
                     <Type size={12} /> Description
                 </label>
                 <input
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Transaction name"
-                    className="w-full bg-white/50 dark:bg-slate-900/50 px-5 py-4 rounded-2xl border border-white/40 dark:border-white/10 outline-none text-lg font-bold text-slate-800 dark:text-white"
+                    placeholder="E.g. Coffee, rent, etc."
+                    className="w-full bg-white/50 dark:bg-slate-900/50 px-6 py-5 rounded-2xl border border-white/40 dark:border-white/10 outline-none text-xl font-bold text-slate-800 dark:text-white transition-all focus:border-brand-500/50"
+                    required
                 />
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
-                <div>
-                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
-                        <Calendar size={12} /> Transaction Date
-                    </label>
-                    <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full bg-white/50 dark:bg-slate-900/50 px-5 py-4 rounded-2xl border border-white/40 dark:border-white/10 outline-none font-bold text-slate-700 dark:text-slate-200"
-                        required
-                    />
-                </div>
+            <div className="w-full">
+                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">
+                    <Calendar size={12} /> Date
+                </label>
+                <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full bg-white/50 dark:bg-slate-900/50 px-6 py-5 rounded-2xl border border-white/40 dark:border-white/10 outline-none font-bold text-slate-700 dark:text-slate-200"
+                    required
+                />
             </div>
         </div>
 
-        {/* Category Selector */}
+        {/* Category Chip Selector */}
         {type === TransactionType.EXPENSE && (
           <div className="space-y-4">
-            <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">
+            <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-2">
                 <Tag size={12} /> Category
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2.5 pb-2">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`py-3 px-5 text-xs font-bold rounded-2xl border transition-all duration-300 ${
+                  className={`py-4 px-6 text-xs font-bold rounded-2xl border transition-all duration-300 ${
                     category === cat
                       ? 'bg-brand-500 text-white border-brand-600 shadow-lg scale-105'
-                      : 'bg-white/40 dark:bg-white/5 border-transparent text-slate-500'
+                      : 'bg-white/40 dark:bg-white/5 border-transparent text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {cat}
                 </button>
               ))}
-              {!categories.includes(category) && category !== 'Income' && (
-                  <button
-                  type="button"
-                  className="py-3 px-5 text-xs font-bold rounded-2xl bg-slate-400 text-white opacity-70"
-                >
-                  {category}
-                </button>
-              )}
             </div>
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="pt-4 space-y-4">
+        {/* Actions Group */}
+        <div className="pt-6 space-y-4">
           <button 
             type="submit" 
-            className="w-full py-5 rounded-3xl text-xl font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 shadow-xl shadow-brand-500/30 transition-all active:scale-95"
+            className="w-full py-6 rounded-[2.2rem] text-xl font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 shadow-xl shadow-brand-500/30 active:scale-95 transition-all"
           >
             <div className="flex items-center justify-center gap-2">
                 <Check size={24} /> Save Changes
@@ -175,9 +173,9 @@ export const EditTransaction: React.FC<EditTransactionProps> = ({ transaction, c
           <button 
             type="button" 
             onClick={handleDelete}
-            className="w-full py-5 rounded-3xl text-lg font-bold text-rose-500 bg-rose-500/10 border border-rose-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-6 rounded-[2.2rem] text-lg font-bold text-rose-500 bg-rose-500/10 border border-rose-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
           >
-            <Trash2 size={20} /> Delete Transaction
+            <Trash2 size={20} /> Delete Record
           </button>
         </div>
       </form>
