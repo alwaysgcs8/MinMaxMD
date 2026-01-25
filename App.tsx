@@ -51,6 +51,8 @@ const App: React.FC = () => {
     const canSwipeBack = [View.EDIT, View.EDIT_SUBSCRIPTION, View.ADD, View.SETTINGS, View.BUDGET].includes(currentView);
     if (!canSwipeBack) {
       setSwipeOffset(0);
+      setIsDragging(false);
+      isEligibleSwipe.current = false;
       return;
     }
 
@@ -70,6 +72,12 @@ const App: React.FC = () => {
         const deltaX = currentX - touchStart.current.x;
         const deltaY = Math.abs(currentY - touchStart.current.y);
 
+        // If user moves vertically more than horizontally, cancel the swipe logic for this touch session
+        if (!isDragging && deltaY > deltaX && deltaY > 5) {
+            isEligibleSwipe.current = false;
+            return;
+        }
+
         if (!isDragging && deltaX > 10 && deltaX > deltaY) {
             setIsDragging(true);
         }
@@ -87,7 +95,7 @@ const App: React.FC = () => {
         }
 
         const deltaX = e.changedTouches[0].clientX - touchStart.current.x;
-        const threshold = window.innerWidth * 0.3;
+        const threshold = window.innerWidth * 0.25;
 
         if (deltaX > threshold) {
             setSwipeOffset(window.innerWidth);
@@ -353,7 +361,7 @@ const App: React.FC = () => {
         className="flex-1 flex flex-col overflow-hidden w-full h-full" 
         style={{ 
             transform: `translateX(${swipeOffset}px)`,
-            transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.1, 0.7, 0.1, 1)',
+            transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.1, 0.7, 0.1, 1)',
             willChange: 'transform'
         }}
       >

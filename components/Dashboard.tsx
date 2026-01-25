@@ -104,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative" style={{ height: 'var(--app-height)' }}>
+    <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
       <div className="flex-1 overflow-y-auto no-scrollbar scroll-y-only pb-40">
         <header className="px-6 pt-safe pb-4 flex justify-between items-center bg-transparent border-b border-white/10">
           <div className="flex items-center py-1.5">
