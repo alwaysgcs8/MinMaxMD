@@ -25,6 +25,7 @@ import { Subscriptions } from './components/Subscriptions';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
+  const [returnView, setReturnView] = useState<View>(View.DASHBOARD);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([]);
   const [budgetLimits, setBudgetLimits] = useState<BudgetLimit[]>([]);
@@ -35,15 +36,49 @@ const App: React.FC = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [selectedRecurringTransaction, setSelectedRecurringTransaction] = useState<RecurringTransaction | null>(null);
   
-  // Track if we should force recurring when entering the ADD view
   const [isAddingSubscription, setIsAddingSubscription] = useState(false);
-
-  // Auth state
   const [user, setUser] = useState<User | null>(null);
-
-  // Scroll visibility logic
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
+
+  // Swipe back logic
+  const touchStart = useRef({ x: 0, y: 0 });
+  const isSwiping = useRef(false);
+
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+        touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        // Only trigger swipe back if starting from the left edge (first 40px)
+        isSwiping.current = touchStart.current.x < 40;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+        if (!isSwiping.current) return;
+        const deltaX = e.changedTouches[0].clientX - touchStart.current.x;
+        const deltaY = Math.abs(e.changedTouches[0].clientY - touchStart.current.y);
+
+        // Required distance for back swipe: 100px, and horizontal (deltaY < 50px)
+        if (deltaX > 100 && deltaY < 50) {
+            handleBack();
+        }
+        isSwiping.current = false;
+    };
+
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchend', handleTouchEnd);
+    return () => {
+        window.removeEventListener('touchstart', handleTouchStart);
+        window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [currentView, returnView]);
+
+  const handleBack = () => {
+    if (currentView === View.EDIT || currentView === View.EDIT_SUBSCRIPTION) {
+        setCurrentView(returnView);
+    } else if (currentView === View.ADD || currentView === View.SETTINGS || currentView === View.BUDGET) {
+        setCurrentView(View.DASHBOARD);
+    }
+  };
   
   // Helper to process recurring transactions
   const processRecurringTransactions = (
@@ -52,17 +87,14 @@ const App: React.FC = () => {
   ): { newTxs: Transaction[], updatedRecurring: RecurringTransaction[], hasChanges: boolean } => {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
-
     let generatedTxs: Transaction[] = [];
     let updatedRecurring = currentRecurring.map(r => ({ ...r }));
     let hasChanges = false;
 
     updatedRecurring.forEach(r => {
       let nextDate = new Date(r.nextDueDate);
-
       while (nextDate <= today) {
         hasChanges = true;
-        
         generatedTxs.push({
           id: crypto.randomUUID(),
           amount: r.amount,
@@ -71,88 +103,55 @@ const App: React.FC = () => {
           type: r.type,
           date: nextDate.toISOString()
         });
-
         switch(r.frequency) {
-          case RecurrenceFrequency.DAILY: 
-            nextDate.setDate(nextDate.getDate() + 1); 
-            break;
-          case RecurrenceFrequency.WEEKLY: 
-            nextDate.setDate(nextDate.getDate() + 7); 
-            break;
-          case RecurrenceFrequency.MONTHLY: 
-            nextDate.setMonth(nextDate.getMonth() + 1); 
-            break;
-          case RecurrenceFrequency.YEARLY: 
-            nextDate.setFullYear(nextDate.getFullYear() + 1); 
-            break;
-          default:
-            nextDate.setDate(nextDate.getDate() + 1);
+          case RecurrenceFrequency.DAILY: nextDate.setDate(nextDate.getDate() + 1); break;
+          case RecurrenceFrequency.WEEKLY: nextDate.setDate(nextDate.getDate() + 7); break;
+          case RecurrenceFrequency.MONTHLY: nextDate.setMonth(nextDate.getMonth() + 1); break;
+          case RecurrenceFrequency.YEARLY: nextDate.setFullYear(nextDate.getFullYear() + 1); break;
+          default: nextDate.setDate(nextDate.getDate() + 1);
         }
-        
         r.nextDueDate = nextDate.toISOString();
       }
     });
-
-    return { 
-        newTxs: [...currentTxs, ...generatedTxs], 
-        updatedRecurring, 
-        hasChanges 
-    };
+    return { newTxs: [...currentTxs, ...generatedTxs], updatedRecurring, hasChanges };
   };
 
-  // Initial Load from LocalStorage
   useEffect(() => {
     const initApp = async () => {
         if (navigator.storage && navigator.storage.persist) {
-            try {
-                await navigator.storage.persist();
-            } catch (e) {
-                console.warn("Could not request storage persistence", e);
-            }
+            try { await navigator.storage.persist(); } catch (e) {}
         }
-
         const storedTxs = getStoredTransactions();
         const storedRecurring = getStoredRecurringTransactions();
         const storedLimits = getBudgetLimits();
         const storedOverall = getOverallBudget();
         const storedCategories = getStoredCategories();
         const storedTheme = getStoredTheme();
-
         const result = processRecurringTransactions(storedTxs, storedRecurring);
-
         setTransactions(result.newTxs);
         setRecurringTransactions(result.updatedRecurring);
         setBudgetLimits(storedLimits);
         setOverallBudget(storedOverall);
         setCategories(storedCategories);
         setTheme(storedTheme);
-        
         setIsLoaded(true);
     };
-
     initApp();
   }, []);
 
-  // Auth & Cloud Sync Listener
   useEffect(() => {
     if (!auth) return;
-
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         setUser(currentUser);
-        
         if (currentUser && isLoaded) {
-            console.log("Syncing from cloud...");
             const cloudData = await loadFromCloud(currentUser.uid);
-            
             if (cloudData) {
                 setTransactions(cloudData.transactions || []);
                 setRecurringTransactions(cloudData.recurring || []);
                 setBudgetLimits(cloudData.limits || []);
                 if (cloudData.overallBudget) setOverallBudget(cloudData.overallBudget);
                 if (cloudData.categories) setCategories(cloudData.categories);
-                console.log("Data loaded from cloud.");
             } else {
-                console.log("Cloud empty, uploading local data...");
                 await saveToCloud(currentUser.uid, {
                     transactions,
                     recurring: recurringTransactions,
@@ -163,34 +162,19 @@ const App: React.FC = () => {
             }
         }
     });
-
     return () => unsubscribe();
   }, [isLoaded]);
 
-  // Theme Logic
   useEffect(() => {
     const applyTheme = () => {
       const isDark = theme === 'dark' || 
         (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      if (isDark) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
     };
-
     applyTheme();
-
-    if (theme === 'system') {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handler = () => applyTheme();
-        mediaQuery.addEventListener('change', handler);
-        return () => mediaQuery.removeEventListener('change', handler);
-    }
   }, [theme]);
 
-  // Persist State (Local + Cloud)
   useEffect(() => {
     if (isLoaded) {
       saveTransactions(transactions);
@@ -199,7 +183,6 @@ const App: React.FC = () => {
       saveOverallBudget(overallBudget);
       saveStoredCategories(categories);
       saveTheme(theme);
-
       if (user) {
          saveToCloud(user.uid, {
              transactions,
@@ -212,41 +195,25 @@ const App: React.FC = () => {
     }
   }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, theme, isLoaded, user]);
 
-  // Handle scrolling for Nav visibility
   useEffect(() => {
     const handleScroll = (e: Event) => {
         const target = e.target as HTMLElement;
         if (!target.classList || !target.classList.contains('scroll-y-only')) return;
-        
         const currentScrollY = target.scrollTop;
         const delta = currentScrollY - lastScrollY.current;
-
-        if (currentScrollY < 10) {
-            setIsNavVisible(true);
-        } else if (delta > 5 && currentScrollY > 50) {
-            setIsNavVisible(false);
-        } else if (delta < -10) {
-            setIsNavVisible(true);
-        }
-        
+        if (currentScrollY < 10) setIsNavVisible(true);
+        else if (delta > 5 && currentScrollY > 50) setIsNavVisible(false);
+        else if (delta < -10) setIsNavVisible(true);
         lastScrollY.current = currentScrollY;
     };
-
     window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
     return () => window.removeEventListener('scroll', handleScroll, { capture: true });
   }, []);
 
   const handleAddTransaction = (data: { transaction: Omit<Transaction, 'id'>, frequency: RecurrenceFrequency }) => {
     const { transaction: txData, frequency } = data;
-    
-    const newTx: Transaction = {
-      ...txData,
-      id: crypto.randomUUID(),
-    };
-    
-    const updatedTxs = [...transactions, newTx];
-    setTransactions(updatedTxs);
-
+    const newTx: Transaction = { ...txData, id: crypto.randomUUID() };
+    setTransactions(prev => [...prev, newTx]);
     if (frequency !== RecurrenceFrequency.NONE) {
         const nextDate = new Date(txData.date);
         switch(frequency) {
@@ -255,7 +222,6 @@ const App: React.FC = () => {
           case RecurrenceFrequency.MONTHLY: nextDate.setMonth(nextDate.getMonth() + 1); break;
           case RecurrenceFrequency.YEARLY: nextDate.setFullYear(nextDate.getFullYear() + 1); break;
         }
-
         const newRecurring: RecurringTransaction = {
             id: crypto.randomUUID(),
             amount: txData.amount,
@@ -266,10 +232,8 @@ const App: React.FC = () => {
             startDate: txData.date,
             nextDueDate: nextDate.toISOString()
         };
-
         setRecurringTransactions(prev => [...prev, newRecurring]);
     }
-
     setIsAddingSubscription(false);
     setCurrentView(View.DASHBOARD);
   };
@@ -277,7 +241,7 @@ const App: React.FC = () => {
   const handleUpdateTransaction = (updatedTx: Transaction) => {
     setTransactions(prev => prev.map(t => t.id === updatedTx.id ? updatedTx : t));
     setSelectedTransaction(null);
-    setCurrentView(View.HISTORY);
+    setCurrentView(returnView);
   };
 
   const handleUpdateRecurring = (updatedRT: RecurringTransaction) => {
@@ -289,11 +253,11 @@ const App: React.FC = () => {
   const handleDeleteTransaction = (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
     setSelectedTransaction(null);
-    setCurrentView(View.HISTORY);
+    setCurrentView(returnView);
   };
 
   const handleDeleteRecurring = (id: string) => {
-    setRecurringTransactions(prev => prev.filter(t => t.id !== id));
+    setRecurringTransactions(prev => prev.filter(rt => rt.id !== id));
     if (selectedRecurringTransaction?.id === id) {
         setSelectedRecurringTransaction(null);
         setCurrentView(View.SUBSCRIPTIONS);
@@ -302,11 +266,13 @@ const App: React.FC = () => {
 
   const handleSelectTransaction = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
+    setReturnView(currentView);
     setCurrentView(View.EDIT);
   };
 
   const handleSelectRecurring = (rt: RecurringTransaction) => {
     setSelectedRecurringTransaction(rt);
+    setReturnView(currentView);
     setCurrentView(View.EDIT_SUBSCRIPTION);
   };
 
@@ -320,15 +286,7 @@ const App: React.FC = () => {
       case View.DASHBOARD:
         return <Dashboard transactions={transactions} onNavigate={setCurrentView} onSelectTransaction={handleSelectTransaction} />;
       case View.ADD:
-        return <AddTransaction 
-            categories={categories} 
-            onAdd={handleAddTransaction} 
-            onCancel={() => {
-                setIsAddingSubscription(false);
-                setCurrentView(View.DASHBOARD);
-            }} 
-            forceRecurring={isAddingSubscription}
-        />;
+        return <AddTransaction categories={categories} onAdd={handleAddTransaction} onCancel={() => { setIsAddingSubscription(false); setCurrentView(View.DASHBOARD); }} forceRecurring={isAddingSubscription} />;
       case View.ANALYTICS:
         return <Analytics transactions={transactions} budgetLimits={budgetLimits} onNavigate={setCurrentView} />;
       case View.HISTORY:
@@ -340,7 +298,7 @@ const App: React.FC = () => {
             categories={categories}
             onUpdate={handleUpdateTransaction} 
             onDelete={handleDeleteTransaction}
-            onCancel={() => setCurrentView(View.HISTORY)} 
+            onCancel={() => setCurrentView(returnView)} 
         />;
       case View.EDIT_SUBSCRIPTION:
         if (!selectedRecurringTransaction) return <Subscriptions recurringTransactions={recurringTransactions} onDelete={handleDeleteRecurring} onEdit={handleSelectRecurring} onNavigate={setCurrentView} onAddClick={() => navigateToAdd(true)} />;
@@ -352,32 +310,13 @@ const App: React.FC = () => {
             onCancel={() => setCurrentView(View.SUBSCRIPTIONS)} 
         />;
       case View.BUDGET:
-        return <Budget 
-            overallBudget={overallBudget}
-            categoryLimits={budgetLimits}
-            categories={categories}
-            onSaveOverall={setOverallBudget}
-            onSaveCategoryLimits={setBudgetLimits}
-            onNavigate={setCurrentView}
-        />;
+        return <Budget overallBudget={overallBudget} categoryLimits={budgetLimits} categories={categories} onSaveOverall={setOverallBudget} onSaveCategoryLimits={setBudgetLimits} onNavigate={setCurrentView} />;
       case View.SUBSCRIPTIONS:
-        return <Subscriptions 
-            recurringTransactions={recurringTransactions}
-            onDelete={handleDeleteRecurring}
-            onEdit={handleSelectRecurring}
-            onNavigate={setCurrentView}
-            onAddClick={() => navigateToAdd(true)}
-        />;
+        return <Subscriptions recurringTransactions={recurringTransactions} onDelete={handleDeleteRecurring} onEdit={handleSelectRecurring} onNavigate={setCurrentView} onAddClick={() => navigateToAdd(true)} />;
       case View.AI_ADVISOR:
         return <AiAdvisor transactions={transactions} />;
       case View.SETTINGS:
-        return <Settings 
-            theme={theme} 
-            onThemeChange={setTheme} 
-            onBack={() => setCurrentView(View.DASHBOARD)}
-            categories={categories}
-            onUpdateCategories={setCategories}
-        />;
+        return <Settings theme={theme} onThemeChange={setTheme} onBack={() => setCurrentView(View.DASHBOARD)} categories={categories} onUpdateCategories={setCategories} />;
       default:
         return <Dashboard transactions={transactions} onNavigate={setCurrentView} onSelectTransaction={handleSelectTransaction} />;
     }
@@ -390,14 +329,8 @@ const App: React.FC = () => {
       <main className="flex-1 overflow-hidden">
         {renderView()}
       </main>
-
-      {/* Navigation */}
       {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && currentView !== View.EDIT_SUBSCRIPTION && currentView !== View.BUDGET && (
-        <BottomNav 
-            currentView={currentView} 
-            onViewChange={setCurrentView} 
-            isVisible={isNavVisible}
-        />
+        <BottomNav currentView={currentView} onViewChange={setCurrentView} isVisible={isNavVisible} />
       )}
     </div>
   );

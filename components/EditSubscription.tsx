@@ -77,7 +77,7 @@ export const EditSubscription: React.FC<EditSubscriptionProps> = ({ recurringTra
               className="w-full bg-transparent text-center text-6xl font-bold focus:outline-none transition-colors duration-500 text-vibrant-purple"
               required
             />
-            <div className="text-slate-400 dark:text-slate-600 font-bold text-xl mt-4 opacity-50 uppercase tracking-widest">$ USD / {frequency.toLowerCase()}</div>
+            <div className="text-slate-400 dark:text-slate-600 font-bold text-xl mt-4 opacity-50 uppercase tracking-widest">$ / {frequency.toLowerCase()}</div>
           </div>
         </div>
 
