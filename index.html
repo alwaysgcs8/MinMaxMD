@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
     <title>MinMaxMD</title>
     
-    <!-- Versioned manifest to force iOS update -->
-    <link rel="manifest" href="/manifest.json?v=18" />
+    <!-- Increment version to force PWA manifest refresh -->
+    <link rel="manifest" href="/manifest.json?v=20" />
     
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
@@ -64,19 +64,21 @@
       @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
       
       :root {
-        --bg-light: #eef2f7;
+        --bg-light: #eef2f7; /* Darker grey-blue for light mode to avoid stark white seams */
         --bg-dark: #020617;
-        /* Rich pastel gradient for light mode to prevent white seams */
+        
+        /* Harmonized app gradient as requested by ChatGPT fix */
         --app-grad-light: radial-gradient(circle at 20% 10%, rgba(34,211,238,0.35), transparent 45%),
                           radial-gradient(circle at 85% 30%, rgba(139,92,246,0.25), transparent 45%),
                           radial-gradient(circle at 40% 90%, rgba(236,72,153,0.18), transparent 50%),
                           linear-gradient(180deg, #e6fbff 0%, #f3e8ff 55%, #efe9ff 100%);
-        /* Deep slate gradient for dark mode */
+
         --app-grad-dark: radial-gradient(circle at 20% 10%, rgba(6, 182, 212, 0.15), transparent 45%),
                          radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1), transparent 45%),
                          linear-gradient(180deg, #020617 0%, #0f172a 100%);
       }
 
+      /* Unified background for all root elements */
       html, body, #app-background {
         height: 100%;
         background: var(--app-grad-light) !important;
@@ -116,18 +118,14 @@
         pointer-events: none;
       }
 
-      /* Keep mesh gradient for additional texture, but lower opacity to let root gradient shine */
       .mesh-gradient {
         position: absolute;
         inset: -50%;
-        opacity: 0.2;
+        opacity: 0.15;
         filter: blur(80px);
         background: radial-gradient(circle at 20% 20%, #06b6d4 0%, transparent 40%),
                     radial-gradient(circle at 80% 80%, #8b5cf6 0%, transparent 40%),
                     radial-gradient(circle at 50% 50%, #ec4899 0%, transparent 40%);
-      }
-      html.dark .mesh-gradient {
-        opacity: 0.1;
       }
 
       .glass-panel {
@@ -159,7 +157,7 @@
         overscroll-behavior-y: bounce; 
       }
 
-      /* Paint the home-indicator safe-area region */
+      /* Paint the home-indicator safe-area region without hard white background */
       #safe-area-bottom-filler {
         position: fixed;
         left: 0;
@@ -167,14 +165,11 @@
         bottom: 0;
         height: env(safe-area-inset-bottom);
         z-index: 9998;
-        background: rgba(255, 255, 255, 0.75);
+        background: transparent; /* Allow gradient to bleed through */
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         transform: translateZ(0);
         pointer-events: none;
-      }
-      html.dark #safe-area-bottom-filler {
-        background: rgba(15, 23, 42, 0.65);
       }
 
       .bottom-nav-container {
