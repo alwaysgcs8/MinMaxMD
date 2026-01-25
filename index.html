@@ -6,7 +6,7 @@
     <title>MinMaxMD</title>
     
     <!-- Increment version to force PWA manifest refresh -->
-    <link rel="manifest" href="/manifest.json?v=20" />
+    <link rel="manifest" href="/manifest.json?v=21" />
     
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
@@ -57,6 +57,17 @@
         window.addEventListener('DOMContentLoaded', () => {
           document.body.style.backgroundColor = bgColor;
         });
+
+        // Stability Fix: App height using innerHeight instead of visualViewport
+        function setAppHeight() {
+          const h = window.innerHeight;
+          document.documentElement.style.setProperty('--app-height', `${h}px`);
+        }
+
+        setAppHeight();
+        window.addEventListener('resize', setAppHeight);
+        window.addEventListener('orientationchange', setAppHeight);
+        window.addEventListener('pageshow', setAppHeight); // Crucial for iOS PWA resume
       })();
     </script>
 
@@ -64,10 +75,9 @@
       @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
       
       :root {
-        --bg-light: #eef2f7; /* Darker grey-blue for light mode to avoid stark white seams */
+        --bg-light: #eef2f7; 
         --bg-dark: #020617;
         
-        /* Harmonized app gradient as requested by ChatGPT fix */
         --app-grad-light: radial-gradient(circle at 20% 10%, rgba(34,211,238,0.35), transparent 45%),
                           radial-gradient(circle at 85% 30%, rgba(139,92,246,0.25), transparent 45%),
                           radial-gradient(circle at 40% 90%, rgba(236,72,153,0.18), transparent 50%),
@@ -78,17 +88,16 @@
                          linear-gradient(180deg, #020617 0%, #0f172a 100%);
       }
 
-      /* Unified background for all root elements */
-      html, body, #app-background {
+      html, body {
         height: 100%;
-        background: var(--app-grad-light) !important;
         margin: 0;
         padding: 0;
         overflow: hidden;
         overscroll-behavior: none;
+        background: var(--app-grad-light) !important;
       }
       
-      html.dark, html.dark body, html.dark #app-background {
+      html.dark, html.dark body {
         background: var(--app-grad-dark) !important;
       }
 
@@ -101,21 +110,29 @@
       }
 
       #root {
-        height: 100dvh;
-        width: 100%;
+        position: relative;
+        z-index: 10;
+        height: var(--app-height);
+        min-height: 100svh; /* Stable fallback for iOS */
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        position: relative;
-        z-index: 10;
         background: transparent;
       }
 
       #app-background {
         position: fixed;
-        inset: 0;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0; /* Ensure it reaches the bottom of the device viewport */
         z-index: 0;
         pointer-events: none;
+        background: var(--app-grad-light) !important;
+        transform: translateZ(0);
+      }
+      html.dark #app-background {
+        background: var(--app-grad-dark) !important;
       }
 
       .mesh-gradient {
@@ -157,7 +174,7 @@
         overscroll-behavior-y: bounce; 
       }
 
-      /* Paint the home-indicator safe-area region without hard white background */
+      /* Blends with background to avoid hard seams */
       #safe-area-bottom-filler {
         position: fixed;
         left: 0;
@@ -165,7 +182,7 @@
         bottom: 0;
         height: env(safe-area-inset-bottom);
         z-index: 9998;
-        background: transparent; /* Allow gradient to bleed through */
+        background: transparent;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         transform: translateZ(0);
