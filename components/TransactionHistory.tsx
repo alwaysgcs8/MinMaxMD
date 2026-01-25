@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, TransactionType, View } from '../types';
-import { getCategoryColor } from '../constants';
+import { getCategoryColor, getCategoryIcon } from '../constants';
 import { Search, Filter, Settings as SettingsIcon, Calendar, DollarSign, ArrowDown } from 'lucide-react';
 
 interface TransactionHistoryProps {
@@ -60,9 +60,9 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
   }, [filteredTransactions, sortKey]);
 
   return (
-    <div className="h-full flex flex-col pb-32 animate-in fade-in duration-500">
+    <div className="h-full flex flex-col pb-32 animate-in fade-in duration-500 overflow-hidden">
       {/* Header */}
-      <div className="flex justify-between items-start px-6 pt-safe-top pb-4">
+      <div className="flex justify-between items-start px-6 pt-safe-top pb-4 shrink-0">
         <div>
             <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">History</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium">Your spending timeline</p>
@@ -76,7 +76,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
       </div>
 
       {/* Search & Sort */}
-      <div className="px-6 mb-4 space-y-3">
+      <div className="px-6 mb-4 space-y-3 shrink-0">
         <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <input 
@@ -125,7 +125,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto px-6 space-y-6 no-scrollbar">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 space-y-6 no-scrollbar touch-pan-y" style={{ touchAction: 'pan-y' }}>
         {Object.keys(groupedTransactions).length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400">
                 <Filter size={48} className="mb-4 opacity-20" />
@@ -134,32 +134,35 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
         ) : (
             Object.entries(groupedTransactions).map(([groupTitle, txs]) => (
                 <div key={groupTitle} className="space-y-3">
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky top-0 bg-[#f0f2f5]/90 dark:bg-[#020617]/90 backdrop-blur-sm py-2 z-10">
+                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky top-0 bg-[#fdfdff]/90 dark:bg-[#020617]/90 backdrop-blur-sm py-2 z-10">
                         {groupTitle}
                     </h3>
-                    {txs.map(t => (
-                        <div 
-                            key={t.id} 
-                            onClick={() => onSelectTransaction(t)}
-                            className="group flex items-center p-4 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm backdrop-blur-md transition-all active:scale-95 cursor-pointer hover:bg-white/60 dark:hover:bg-slate-800/60"
-                        >
+                    {txs.map(t => {
+                        const CategoryIcon = getCategoryIcon(t.category);
+                        return (
                             <div 
-                                className="w-12 h-12 rounded-[1rem] flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md"
-                                style={{ backgroundColor: getCategoryColor(t.category), opacity: 0.9 }}
+                                key={t.id} 
+                                onClick={() => onSelectTransaction(t)}
+                                className="group flex items-center p-4 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm backdrop-blur-md transition-all active:scale-95 cursor-pointer hover:bg-white/60 dark:hover:bg-slate-800/60"
                             >
-                                {t.category[0]}
+                                <div 
+                                    className="w-12 h-12 rounded-[1rem] flex items-center justify-center text-white shrink-0 shadow-md"
+                                    style={{ backgroundColor: getCategoryColor(t.category), opacity: 0.9 }}
+                                >
+                                    <CategoryIcon size={20} />
+                                </div>
+                                <div className="ml-4 flex-1 min-w-0">
+                                    <p className="font-bold text-slate-800 dark:text-slate-100 truncate">{t.description}</p>
+                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                                        {new Date(t.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+                                </div>
+                                <div className={`font-bold shrink-0 ml-2 ${t.type === TransactionType.INCOME ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}>
+                                    {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}
+                                </div>
                             </div>
-                            <div className="ml-4 flex-1 min-w-0">
-                                <p className="font-bold text-slate-800 dark:text-slate-100 truncate">{t.description}</p>
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                                    {new Date(t.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                                </p>
-                            </div>
-                            <div className={`font-bold ${t.type === TransactionType.INCOME ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}>
-                                {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             ))
         )}

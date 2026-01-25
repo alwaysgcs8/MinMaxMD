@@ -59,7 +59,8 @@ export enum View {
   AI_ADVISOR = 'AI_ADVISOR',
   HISTORY = 'HISTORY',
   EDIT = 'EDIT',
-  BUDGET = 'BUDGET'
+  BUDGET = 'BUDGET',
+  SUBSCRIPTIONS = 'SUBSCRIPTIONS'
 }
 
 export enum AnalyticsWidgetType {

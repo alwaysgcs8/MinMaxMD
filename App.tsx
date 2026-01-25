@@ -20,6 +20,7 @@ import { AiAdvisor } from './components/AiAdvisor';
 import { TransactionHistory } from './components/TransactionHistory';
 import { EditTransaction } from './components/EditTransaction';
 import { Budget } from './components/Budget';
+import { Subscriptions } from './components/Subscriptions';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
@@ -271,6 +272,10 @@ const App: React.FC = () => {
     setCurrentView(View.HISTORY);
   };
 
+  const handleDeleteRecurring = (id: string) => {
+    setRecurringTransactions(prev => prev.filter(t => t.id !== id));
+  };
+
   const handleSelectTransaction = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setCurrentView(View.EDIT);
@@ -281,7 +286,12 @@ const App: React.FC = () => {
       case View.DASHBOARD:
         return <Dashboard transactions={transactions} onNavigate={setCurrentView} />;
       case View.ADD:
-        return <AddTransaction categories={categories} onAdd={handleAddTransaction} onCancel={() => setCurrentView(View.DASHBOARD)} />;
+        return <AddTransaction 
+            categories={categories} 
+            onAdd={handleAddTransaction} 
+            onCancel={() => setCurrentView(View.DASHBOARD)} 
+            onNavigateSubscriptions={() => setCurrentView(View.SUBSCRIPTIONS)}
+        />;
       case View.ANALYTICS:
         return <Analytics transactions={transactions} budgetLimits={budgetLimits} onNavigate={setCurrentView} />;
       case View.HISTORY:
@@ -302,6 +312,12 @@ const App: React.FC = () => {
             categories={categories}
             onSaveOverall={setOverallBudget}
             onSaveCategoryLimits={setBudgetLimits}
+            onNavigate={setCurrentView}
+        />;
+      case View.SUBSCRIPTIONS:
+        return <Subscriptions 
+            recurringTransactions={recurringTransactions}
+            onDelete={handleDeleteRecurring}
             onNavigate={setCurrentView}
         />;
       case View.AI_ADVISOR:
@@ -330,7 +346,7 @@ const App: React.FC = () => {
       </main>
 
       {/* Navigation */}
-      {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && (
+      {currentView !== View.ADD && currentView !== View.SETTINGS && currentView !== View.EDIT && currentView !== View.BUDGET && (
         <BottomNav 
             currentView={currentView} 
             onViewChange={setCurrentView} 

@@ -1,5 +1,17 @@
-
-import { Transaction, TransactionType } from './types';
+import { 
+  Utensils, 
+  Car, 
+  Home, 
+  Zap, 
+  Gamepad2, 
+  ShoppingBag, 
+  HeartPulse, 
+  Layers, 
+  TrendingUp,
+  MoreHorizontal,
+  LucideIcon
+} from 'lucide-react';
+import { Transaction } from './types';
 
 export const DEFAULT_CATEGORIES = [
   'Food',
@@ -13,28 +25,28 @@ export const DEFAULT_CATEGORIES = [
 ];
 
 const FIXED_COLORS: Record<string, string> = {
-  'Food': '#f59e0b', // Amber
-  'Transport': '#3b82f6', // Blue
-  'Housing': '#6366f1', // Indigo
-  'Utilities': '#0ea5e9', // Sky
-  'Entertainment': '#ec4899', // Pink
-  'Shopping': '#8b5cf6', // Violet
-  'Health': '#10b981', // Emerald
-  'Income': '#22c55e', // Green
+  'Food': '#ff9f1c', // Bright Orange
+  'Transport': '#4cc9f0', // Cyan
+  'Housing': '#4361ee', // Electric Blue
+  'Utilities': '#4895ef', // Azure
+  'Entertainment': '#f72585', // Vivid Pink
+  'Shopping': '#7209b7', // Deep Purple
+  'Health': '#38b000', // Neon Green
+  'Income': '#10b981', // Emerald
   'Other': '#64748b', // Slate
 };
 
-const PALETTE = [
-  '#ef4444', // Red
-  '#f97316', // Orange
-  '#84cc16', // Lime
-  '#06b6d4', // Cyan
-  '#8b5cf6', // Violet
-  '#d946ef', // Fuchsia
-  '#f43f5e', // Rose
-  '#14b8a6', // Teal
-  '#6366f1', // Indigo
-];
+const ICON_MAP: Record<string, LucideIcon> = {
+  'Food': Utensils,
+  'Transport': Car,
+  'Housing': Home,
+  'Utilities': Zap,
+  'Entertainment': Gamepad2,
+  'Shopping': ShoppingBag,
+  'Health': HeartPulse,
+  'Income': TrendingUp,
+  'Other': Layers,
+};
 
 export const getCategoryColor = (category: string): string => {
   if (FIXED_COLORS[category]) return FIXED_COLORS[category];
@@ -45,7 +57,16 @@ export const getCategoryColor = (category: string): string => {
     hash = category.charCodeAt(i) + ((hash << 5) - hash);
   }
   
+  const PALETTE = [
+    '#f94144', '#f3722c', '#f8961e', '#f9c74f', 
+    '#90be6d', '#43aa8b', '#577590', '#227c9d', '#ffcb77'
+  ];
+  
   return PALETTE[Math.abs(hash) % PALETTE.length];
+};
+
+export const getCategoryIcon = (category: string): LucideIcon => {
+  return ICON_MAP[category] || MoreHorizontal;
 };
 
 export const INITIAL_TRANSACTIONS: Transaction[] = [];

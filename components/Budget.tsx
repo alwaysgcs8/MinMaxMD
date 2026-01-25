@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { OverallBudget, BudgetLimit, View } from '../types';
 import { ArrowLeft, Target, Save, Check } from 'lucide-react';
-import { getCategoryColor } from '../constants';
+import { getCategoryColor, getCategoryIcon } from '../constants';
 
 interface BudgetProps {
   overallBudget: OverallBudget;
@@ -143,29 +143,32 @@ export const Budget: React.FC<BudgetProps> = ({
       <div className="mx-6">
         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 pl-1">Category Limits</h3>
         <div className="grid gap-3">
-            {categories.map((cat) => (
-                <div key={cat} className="flex items-center gap-3 p-3 bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-white/50 dark:border-white/10">
-                    <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shadow-sm shrink-0"
-                        style={{ backgroundColor: getCategoryColor(cat) }}
-                    >
-                        {cat[0]}
+            {categories.map((cat) => {
+                const CategoryIcon = getCategoryIcon(cat);
+                return (
+                    <div key={cat} className="flex items-center gap-3 p-3 bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-white/50 dark:border-white/10">
+                        <div 
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0"
+                            style={{ backgroundColor: getCategoryColor(cat) }}
+                        >
+                            <CategoryIcon size={18} />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{cat}</p>
+                        </div>
+                        <div className="relative w-28">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">$</span>
+                            <input
+                                type="number"
+                                value={getLimit(cat)}
+                                onChange={(e) => handleLimitChange(cat, e.target.value)}
+                                className="w-full pl-6 pr-3 py-2 bg-white/60 dark:bg-slate-900/60 border border-white/40 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-brand-500/50 outline-none transition-all text-slate-900 dark:text-white font-bold text-right text-sm"
+                                placeholder="Limit"
+                            />
+                        </div>
                     </div>
-                    <div className="flex-1">
-                        <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{cat}</p>
-                    </div>
-                    <div className="relative w-28">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">$</span>
-                        <input
-                            type="number"
-                            value={getLimit(cat)}
-                            onChange={(e) => handleLimitChange(cat, e.target.value)}
-                            className="w-full pl-6 pr-3 py-2 bg-white/60 dark:bg-slate-900/60 border border-white/40 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-brand-500/50 outline-none transition-all text-slate-900 dark:text-white font-bold text-right text-sm"
-                            placeholder="Limit"
-                        />
-                    </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
       </div>
     </div>

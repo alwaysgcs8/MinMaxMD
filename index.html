@@ -1,8 +1,8 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Updated Viewport as requested -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
     <title>MinMaxMD</title>
     
@@ -10,7 +10,6 @@
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <!-- Status bar style as requested -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,16 +20,42 @@
           extend: {
             colors: {
               brand: {
-                50: '#f8fafc',
-                100: '#f1f5f9',
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                400: '#38bdf8',
                 500: '#0ea5e9',
-                600: '#0284c7',
-                700: '#0369a1',
-                900: '#0c4a6e',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                900: '#1e3a8a',
               },
+              vibrant: {
+                pink: '#f472b6',
+                purple: '#a855f7',
+                cyan: '#22d3ee',
+                amber: '#fbbf24',
+                emerald: '#34d399',
+                rose: '#fb7185'
+              }
             },
             boxShadow: {
-              'glass': '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0,0,0,0.02)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+              'neon-blue': '0 0 15px rgba(14, 165, 233, 0.4)',
+              'neon-purple': '0 0 15px rgba(168, 85, 247, 0.4)',
+              'neon-emerald': '0 0 15px rgba(52, 211, 153, 0.4)',
+            },
+            animation: {
+              'aurora': 'aurora 20s infinite alternate linear',
+              'float': 'float 6s ease-in-out infinite',
+            },
+            keyframes: {
+              aurora: {
+                '0%': { transform: 'rotate(0deg) scale(1)' },
+                '100%': { transform: 'rotate(3deg) scale(1.1)' }
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              }
             }
           }
         }
@@ -41,74 +66,73 @@
       @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
       
       :root {
-        --bg-light: #ffffff; 
-        --bg-dark: #0f172a;
+        --bg-light: #fdfdff; 
+        --bg-dark: #020617;
       }
 
-      /* 
-         STRATEGY: Natural Scrolling with 100dvh
-         Replaces fixed body strategy for better mobile browser behavior.
-      */
-      
       html, body {
         height: 100%;
         width: 100%;
         margin: 0;
         padding: 0;
         -webkit-tap-highlight-color: transparent;
+        font-family: 'Outfit', sans-serif;
+        overflow: hidden; /* Prevent body scrolling entirely, let components handle it */
       }
 
       body {
-        min-height: 100vh;   /* fallback */
-        min-height: 100dvh;  /* correct in modern iOS */
+        min-height: 100vh;
+        min-height: 100dvh;
         background-color: var(--bg-light);
-        overflow-x: hidden;
       }
       
       .dark body {
         background-color: var(--bg-dark);
       }
 
-      /* 
-         THE ROOT CONTAINER
-         Now allows natural window scrolling instead of internal overflow.
-      */
       #root {
-        min-height: 100vh;
-        min-height: 100dvh;
+        height: 100%;
         width: 100%;
-        overflow-x: hidden;
         position: relative;
         z-index: 10;
-        
-        /* Padding for iPhone Home Bar / Safe Areas */
-        padding-bottom: env(safe-area-inset-bottom);
-        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
       }
 
-      /* Background Layer */
+      /* Multi-color Mesh/Aurora Background */
       #app-background {
         position: fixed;
-        top: -50vh;
-        left: -50vw;
-        width: 200vw;
-        height: 200vh;
+        inset: 0;
         z-index: 0;
         pointer-events: none;
-        
-        background: radial-gradient(circle at 50% 50%, rgba(248, 250, 252, 1), rgba(255, 255, 255, 0) 60%),
-                    radial-gradient(circle at 80% 10%, rgba(241, 245, 249, 0.8), rgba(255, 255, 255, 0) 40%);
-        background-color: var(--bg-light);
-        background-size: cover;
+        overflow: hidden;
+        background: var(--bg-light);
       }
 
       .dark #app-background {
-        background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 1), rgba(15, 23, 42, 0) 60%),
-                    radial-gradient(circle at 100% 0%, rgba(30, 27, 75, 0.3), rgba(30, 27, 75, 0) 50%);
-        background-color: var(--bg-dark);
+        background: var(--bg-dark);
       }
 
-      /* Utilities for Safe Area Layouts */
+      .bg-blob {
+        position: absolute;
+        width: 80vmax;
+        height: 80vmax;
+        filter: blur(80px);
+        opacity: 0.15;
+        border-radius: 50%;
+        z-index: -1;
+      }
+
+      .blob-1 { background: #38bdf8; top: -20%; left: -20%; animation: aurora 25s infinite alternate ease-in-out; }
+      .blob-2 { background: #a855f7; bottom: -20%; right: -20%; animation: aurora 20s infinite alternate-reverse ease-in-out; }
+      .blob-3 { background: #fb7185; top: 40%; left: 30%; width: 60vmax; height: 60vmax; animation: aurora 30s infinite alternate ease-in-out; opacity: 0.1; }
+
+      .dark .bg-blob { opacity: 0.2; }
+      .dark .blob-1 { background: #1e40af; }
+      .dark .blob-2 { background: #6b21a8; }
+      .dark .blob-3 { background: #9f1239; }
+
       .pt-safe-top {
         padding-top: max(3.5rem, env(safe-area-inset-top) + 1.5rem);
       }
@@ -117,9 +141,22 @@
         padding-bottom: max(1rem, env(safe-area-inset-bottom));
       }
 
-      /* Hide Scrollbar for app-like feel */
-      html::-webkit-scrollbar { display: none; }
-      html { -ms-overflow-style: none; scrollbar-width: none; }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+      }
+
+      .dark .glass-panel {
+        background: rgba(30, 41, 59, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .neon-border-income { border-color: rgba(52, 211, 153, 0.5); box-shadow: 0 0 10px rgba(52, 211, 153, 0.15); }
+      .neon-border-expense { border-color: rgba(251, 113, 133, 0.5); box-shadow: 0 0 10px rgba(251, 113, 133, 0.15); }
     </style>
     
     <script type="importmap">
@@ -142,23 +179,12 @@
     </script>
 </head>
   <body class="text-slate-900 dark:text-slate-100 selection:bg-brand-500/30">
-    <div id="app-background"></div>
+    <div id="app-background">
+      <div class="bg-blob blob-1"></div>
+      <div class="bg-blob blob-2"></div>
+      <div class="bg-blob blob-3"></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // Changed from '/sw.js' to './sw.js' to prevent cross-origin errors in preview environments
-          navigator.serviceWorker.register('./sw.js')
-            .then(registration => {
-              console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-              // Silently handle errors in preview environments to avoid console noise
-              console.log('SW registration skipped (preview mode)');
-            });
-        });
-      }
-    </script>
   </body>
 </html>
