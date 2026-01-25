@@ -42,27 +42,27 @@ export const Budget: React.FC<BudgetProps> = ({ overallBudget, categoryLimits, c
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-500">
-      <header className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-3 flex items-center justify-between bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm">
-        <div className="flex items-center gap-4">
-            <button onClick={() => onNavigate(View.DASHBOARD)} className="p-2 bg-white/50 dark:bg-white/10 rounded-full text-slate-600 dark:text-slate-300 active:scale-95 transition-all">
-                <ArrowLeft size={24} />
-            </button>
-            <div>
-                <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Budget</h1>
-                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Set your goals</p>
-            </div>
-        </div>
-        <button 
-            onClick={handleSave}
-            className={`p-3 rounded-xl transition-all shadow-md flex items-center gap-2 font-bold active:scale-95 ${isSaved ? 'bg-green-500 text-white' : 'bg-brand-600 text-white'}`}
-        >
-            {isSaved ? <Check size={20} /> : <Save size={20} />}
-            <span className="text-sm">{isSaved ? 'Saved' : 'Save'}</span>
-        </button>
-      </header>
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-32 space-y-6 scroll-y-only px-6 pt-4">
+        <header className="pt-safe pb-4 flex items-center justify-between bg-transparent border-b border-white/10">
+          <div className="flex items-center gap-4">
+              <button onClick={() => onNavigate(View.DASHBOARD)} className="p-2 bg-white/50 dark:bg-white/10 rounded-full text-slate-600 dark:text-slate-300 active:scale-90 transition-all">
+                  <ArrowLeft size={24} />
+              </button>
+              <div>
+                  <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Budget</h1>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Set your goals</p>
+              </div>
+          </div>
+          <button 
+              onClick={handleSave}
+              className={`p-3 rounded-xl transition-all shadow-md flex items-center gap-2 font-bold active:scale-95 ${isSaved ? 'bg-green-500 text-white' : 'bg-brand-600 text-white'}`}
+          >
+              {isSaved ? <Check size={20} /> : <Save size={20} />}
+              <span className="text-sm">{isSaved ? 'Saved' : 'Save'}</span>
+          </button>
+        </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-32 space-y-6 scroll-y-only px-6">
-        <div className="h-28 sm:h-32 shrink-0"></div>
+        <div className="h-4"></div>
         
         <div>
             <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl rounded-[2rem] border border-white/50 dark:border-white/10 shadow-glass p-6">

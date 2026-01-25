@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Transaction, TransactionType, BudgetLimit, View, AnalyticsWidgetType } from '../types';
-import { getCategoryColor } from '../constants';
+import { getCategoryColor, formatCurrency } from '../constants';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, AreaChart, Area } from 'recharts';
 import { Calendar, TrendingUp, AlertTriangle, Settings as SettingsIcon, Layout, X, Check } from 'lucide-react';
 import { getStoredWidgets, saveStoredWidgets } from '../services/storageService';
@@ -207,10 +207,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
     return Object.values(data);
   }, [transactions, trendTimeframe]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
-  };
-
   const getAxisInterval = () => {
     switch (trendTimeframe) {
         case 'day': return 5;
@@ -415,29 +411,29 @@ export const Analytics: React.FC<AnalyticsProps> = ({ transactions, budgetLimits
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-700">
-      <header className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-4 flex justify-between items-start bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10">
-        <div>
-            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>
-        </div>
-        <div className="flex gap-2 pt-1">
-            <button 
-                onClick={() => setIsCustomizing(true)}
-                className="p-3 bg-brand-500 text-white rounded-full shadow-lg shadow-brand-500/30 flex items-center justify-center active:scale-95"
-            >
-                <Layout size={22} />
-            </button>
-            <button 
-                onClick={() => onNavigate(View.SETTINGS)}
-                className="p-3 bg-white/50 dark:bg-white/10 rounded-full border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95"
-            >
-                <SettingsIcon size={22} />
-            </button>
-        </div>
-      </header>
+      <div className="flex-1 px-6 space-y-6 pb-32 overflow-y-auto no-scrollbar scroll-y-only">
+        <header className="pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10">
+          <div>
+              <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Analytics</h1>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">Financial Clarity</p>
+          </div>
+          <div className="flex gap-2 pt-1">
+              <button 
+                  onClick={() => setIsCustomizing(true)}
+                  className="p-3 bg-brand-500 text-white rounded-full shadow-lg shadow-brand-500/30 flex items-center justify-center active:scale-95"
+              >
+                  <Layout size={22} />
+              </button>
+              <button 
+                  onClick={() => onNavigate(View.SETTINGS)}
+                  className="p-3 bg-white/50 dark:bg-white/10 rounded-full border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95"
+              >
+                  <SettingsIcon size={22} />
+              </button>
+          </div>
+        </header>
 
-      <div className="flex-1 px-6 space-y-6 pb-32 scroll-y-only no-scrollbar">
-        <div className="h-28 sm:h-32"></div>
+        <div className="h-4"></div>
         {activeWidgets.length === 0 && (
              <div className="text-center py-12 text-slate-400 glass-panel rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                 <p>No widgets active.</p>

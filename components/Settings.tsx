@@ -74,18 +74,19 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-transparent animate-in fade-in duration-500">
-      <header className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-4 flex items-center gap-4 bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm">
-        <button onClick={onBack} className="p-2 bg-white/50 dark:bg-white/10 rounded-full text-slate-600 dark:text-slate-300 active:scale-95 transition-all">
-            <ArrowLeft size={24} />
-        </button>
-        <div>
-            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Settings</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Customize your experience</p>
-        </div>
-      </header>
-      
       <div className="flex-1 overflow-y-auto no-scrollbar pb-32 space-y-8 scroll-y-only">
-        <div className="h-28 sm:h-32 shrink-0"></div>
+        <header className="px-6 pt-safe pb-4 flex items-center gap-4 bg-transparent border-b border-white/10 shadow-sm">
+          <button onClick={onBack} className="p-2 bg-white/50 dark:bg-white/10 rounded-full text-slate-600 dark:text-slate-300 active:scale-95 transition-all">
+              <ArrowLeft size={24} />
+          </button>
+          <div>
+              <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">Settings</h1>
+              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Customize your experience</p>
+          </div>
+        </header>
+
+        <div className="h-4"></div>
+
         {/* Categories */}
         <div className="mx-6 p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">

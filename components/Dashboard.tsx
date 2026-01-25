@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Transaction, TransactionType, View } from '../types';
-import { getCategoryColor, getCategoryIcon } from '../constants';
-import { ArrowUpRight, ArrowDownRight, Settings as SettingsIcon, Target, Wallet, ChevronRight, ChevronLeft } from 'lucide-react';
+import { getCategoryColor, getCategoryIcon, formatCurrency } from '../constants';
+import { ArrowUpRight, ArrowDownRight, Settings as SettingsIcon, Target, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -95,10 +95,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, selectedPeriod]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
-  };
-
   const navigatePeriod = (dir: number) => {
     const nextIdx = selectedIndex + dir;
     if (nextIdx >= 0 && nextIdx < periods.length) {
@@ -108,28 +104,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
 
   return (
     <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
-      <header 
-        className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-2 flex justify-between items-center bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm"
-      >
-        <div className="flex items-center py-1.5">
-          <h1 className="text-base font-black tracking-tight text-slate-900 dark:text-white uppercase">
-            MinMax<span className="text-brand-500">MD</span>
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => onNavigate(View.BUDGET)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
-            <Target size={18} />
-          </button>
-          <button onClick={() => onNavigate(View.SETTINGS)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
-            <SettingsIcon size={18} />
-          </button>
-        </div>
-      </header>
+      <div className="flex-1 overflow-y-auto no-scrollbar scroll-y-only pb-40">
+        <header className="px-6 pt-safe pb-4 flex justify-between items-center bg-transparent border-b border-white/10">
+          <div className="flex items-center py-1.5">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
+              MinMax<span className="text-brand-500">MD</span>
+            </h1>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => onNavigate(View.BUDGET)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
+              <Target size={20} />
+            </button>
+            <button onClick={() => onNavigate(View.SETTINGS)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
+              <SettingsIcon size={20} />
+            </button>
+          </div>
+        </header>
 
-      <div 
-        className="flex-1 overflow-y-auto no-scrollbar scroll-y-only pb-40"
-      >
-        <div className="h-16 sm:h-20"></div>
+        <div className="h-4"></div>
         
         {/* Timeframe Selector */}
         <div className="px-6 pb-4">
@@ -148,14 +140,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
           </div>
         </div>
 
-        {/* Hero Balance Card - Balanced Proportions */}
+        {/* Hero Balance Card */}
         <div className="px-6 mb-8">
           <div className="bg-slate-900 dark:bg-slate-800/90 rounded-[2.5rem] p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl border border-white/5 ring-1 ring-white/10">
-            {/* Glow effect */}
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/20 blur-[60px] rounded-full"></div>
             
             <div className="relative z-10 flex flex-col gap-6">
-              {/* Top Row: Period & Nav */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <button 
@@ -182,14 +172,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
                 </div>
               </div>
 
-              {/* Middle Row: Main Balance */}
               <div className="py-2">
                 <h2 className="text-5xl sm:text-6xl font-black tracking-tighter bg-gradient-to-br from-white via-white to-slate-500 bg-clip-text text-transparent">
                   {formatCurrency(stats.balance)}
                 </h2>
               </div>
               
-              {/* Bottom Row: In/Out Breakdown */}
               <div className="flex gap-3 mt-1">
                 <div className="flex-1 bg-white/[0.03] rounded-2xl p-4 border border-white/[0.05] backdrop-blur-sm flex items-center justify-between group">
                   <div>
@@ -212,7 +200,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate }
           </div>
         </div>
 
-        {/* Recent Activity List */}
+        {/* Recent Activity */}
         <div className="px-6 space-y-4">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.15em]">Activity</h3>

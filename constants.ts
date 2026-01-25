@@ -69,4 +69,12 @@ export const getCategoryIcon = (category: string): LucideIcon => {
   return ICON_MAP[category] || MoreHorizontal;
 };
 
+export const formatCurrency = (amount: number, maximumFractionDigits: number = 0) => {
+  return new Intl.NumberFormat('en-US', { 
+    style: 'currency', 
+    currency: 'USD', 
+    maximumFractionDigits 
+  }).format(amount);
+};
+
 export const INITIAL_TRANSACTIONS: Transaction[] = [];

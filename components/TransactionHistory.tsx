@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Transaction, TransactionType, View } from '../types';
-import { getCategoryColor, getCategoryIcon } from '../constants';
+import { Transaction, View } from '../types';
+import { getCategoryColor, getCategoryIcon, formatCurrency } from '../constants';
 import { Search, Filter, Settings as SettingsIcon, Calendar, DollarSign, ArrowDown } from 'lucide-react';
 
 interface TransactionHistoryProps {
@@ -13,10 +13,6 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
   const [searchTerm, setSearchTerm] = useState('');
   const [sortKey, setSortKey] = useState<'date' | 'amount'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-  };
 
   const handleSort = (key: 'date' | 'amount') => {
     if (sortKey === key) {
@@ -60,26 +56,23 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
   }, [filteredTransactions, sortKey]);
 
   return (
-    <div className="flex flex-col h-full pb-32 animate-in fade-in duration-500 overflow-hidden bg-transparent">
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-start px-6 pt-safe pb-4 bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm">
-        <div>
-            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">History</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Your spending timeline</p>
-        </div>
-        <button 
-            onClick={() => onNavigate(View.SETTINGS)}
-            className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95 mt-1"
-        >
-            <SettingsIcon size={22} />
-        </button>
-      </header>
+    <div className="flex flex-col h-full overflow-hidden bg-transparent">
+      <div className="flex-1 space-y-6 overflow-y-auto no-scrollbar scroll-y-only px-6 pb-32">
+        <header className="pt-safe pb-4 flex justify-between items-start bg-transparent border-b border-white/10">
+          <div>
+              <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">History</h1>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">Your spending timeline</p>
+          </div>
+          <button 
+              onClick={() => onNavigate(View.SETTINGS)}
+              className="p-3 bg-white/50 dark:bg-white/10 rounded-full hover:bg-white/80 dark:hover:bg-white/20 transition-all shadow-sm border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-300 active:scale-95 mt-1"
+          >
+              <SettingsIcon size={22} />
+          </button>
+        </header>
 
-      {/* List Content */}
-      <div className="flex-1 space-y-6 no-scrollbar scroll-y-only px-6">
-        <div className="h-28 sm:h-32 shrink-0"></div>
+        <div className="h-4"></div>
 
-        {/* Search & Sort moved into scrollable area to maximize top-level view space or can stay fixed below header */}
         <div className="space-y-3 shrink-0">
           <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -159,8 +152,8 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transact
                                         {new Date(t.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                                     </p>
                                 </div>
-                                <div className={`font-bold shrink-0 ml-2 ${t.type === TransactionType.INCOME ? 'text-emerald-600' : 'text-slate-800 dark:text-white'}`}>
-                                    {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}
+                                <div className={`font-bold shrink-0 ml-2 ${t.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-800 dark:text-white'}`}>
+                                    {t.type === 'INCOME' ? '+' : '-'}{formatCurrency(t.amount, 2)}
                                 </div>
                             </div>
                         );

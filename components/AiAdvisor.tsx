@@ -74,19 +74,20 @@ export const AiAdvisor: React.FC<AiAdvisorProps> = ({ transactions }) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-transparent animate-in fade-in duration-700">
-       <header className="fixed top-0 left-0 right-0 z-[100] px-6 pt-safe pb-4 bg-white/10 dark:bg-black/10 backdrop-blur-xl border-b border-white/10 shadow-sm">
-        <div className="flex items-center gap-3 mb-1">
-            <div className="bg-gradient-to-br from-brand-400 to-purple-500 p-2 rounded-xl text-white shadow-lg shadow-brand-500/30">
-                <Bot size={24} />
-            </div>
-            <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">AI Advisor</h1>
-        </div>
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Smart insights for your wallet</p>
-      </header>
+    <div className="h-full flex flex-col bg-transparent animate-in fade-in duration-700 overflow-hidden">
+      <div className="flex-1 overflow-y-auto px-6 py-4 no-scrollbar scroll-y-only">
+        <header className="pt-safe pb-4 bg-transparent border-b border-white/10">
+          <div className="flex items-center gap-3 mb-1">
+              <div className="bg-gradient-to-br from-brand-400 to-purple-500 p-2 rounded-xl text-white shadow-lg shadow-brand-500/30">
+                  <Bot size={24} />
+              </div>
+              <h1 className="text-3xl font-light text-slate-900 dark:text-white tracking-tight">AI Advisor</h1>
+          </div>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Smart insights for your wallet</p>
+        </header>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-4 no-scrollbar scroll-y-only">
-        <div className="h-28 sm:h-32"></div>
+        <div className="h-4"></div>
+
         {!hasFetched && !loading && (
             <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-6 opacity-80">
                 <div className="relative">
