@@ -104,50 +104,44 @@
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-      .scroll-y-only {
-        flex: 1;
-        width: 100%;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-y: bounce;
-      }
-
       /* FINAL STICKY FIX OVERRIDES */
       html, body {
         margin: 0;
         padding: 0;
         height: 100%;
         width: 100%;
+        overflow: hidden;              /* lock document */
+        background: var(--app-grad-light) !important;
+      }
+      html.dark, html.dark body {
+        background: var(--app-grad-dark) !important;
       }
 
       body {
         font-family: 'Outfit', sans-serif;
         -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
-        min-height: 100svh;
-        min-height: -webkit-fill-available;
         display: flex;
         flex-direction: column;
-        overflow-y: auto;
-        overflow-x: hidden;
-        background: var(--app-grad-light) !important;
-      }
-
-      html.dark body {
-        background: var(--app-grad-dark) !important;
       }
 
       #root {
         flex: 1;
-        min-height: 100svh;
+        min-height: 0;                 /* critical */
         display: flex;
         flex-direction: column;
-        overflow-x: hidden;
-        overflow-y: visible;
+        overflow: hidden;              /* root does not scroll */
         position: relative;
         z-index: 10;
         background: transparent;
+      }
+
+      .scroll-y-only {
+        flex: 1;
+        min-height: 0;                 /* critical */
+        overflow-y: auto !important;   /* only scroller */
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
       }
 
       #app-background {
@@ -174,11 +168,7 @@
         height: env(safe-area-inset-bottom);
         pointer-events: none;
         z-index: 999999;
-
-        /* Paint it — do NOT leave transparent */
         background: var(--app-grad-light) !important;
-
-        /* optional: keep blur */
         -webkit-backdrop-filter: blur(20px);
         backdrop-filter: blur(20px);
       }
