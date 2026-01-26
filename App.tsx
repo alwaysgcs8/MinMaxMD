@@ -326,20 +326,24 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full w-full bg-transparent overflow-hidden relative">
-      <main 
-        className="flex-1 flex flex-col overflow-hidden w-full h-full will-change-transform" 
-        style={{ 
+      <main className="flex-1 flex flex-col overflow-hidden w-full h-full relative">
+        {/* Swipe shadow indicator */}
+        {isDragging && swipeOffset > 10 && (
+          <div className="fixed inset-y-0 left-0 w-1 bg-brand-500/30 blur-sm pointer-events-none z-[150]" />
+        )}
+        
+        {/* View container with swipe transform applied here only when dragging to avoid global issues */}
+        <div 
+          className="flex-1 flex flex-col w-full h-full"
+          style={{ 
             transform: `translateX(${swipeOffset}px)`,
             transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.1, 0.7, 0.1, 1)'
-        }}
-      >
-        {renderView()}
+          }}
+        >
+          {renderView()}
+        </div>
       </main>
       
-      {isDragging && swipeOffset > 10 && (
-          <div className="fixed inset-y-0 left-0 w-1 bg-brand-500/30 blur-sm pointer-events-none z-[150]" />
-      )}
-
       {!hideNav && (
         <BottomNav currentView={currentView} onViewChange={setCurrentView} isVisible={isNavVisible} />
       )}

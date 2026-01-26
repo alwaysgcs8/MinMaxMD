@@ -6,7 +6,7 @@
     <title>MinMaxMD</title>
     
     <!-- Increment version to force PWA manifest refresh -->
-    <link rel="manifest" href="/manifest.json?v=30" />
+    <link rel="manifest" href="/manifest.json?v=31" />
     
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
@@ -68,7 +68,7 @@
       window.addEventListener('orientationchange', setVH);
       window.addEventListener('pageshow', setVH);
 
-      // Prevent document rubber-band; allow only .scroll-y-only to scroll
+      // Prevent document rubber-band: allow only inner scrollers
       document.addEventListener('touchmove', (e) => {
         const scroller = e.target.closest?.('.scroll-y-only');
         if (!scroller) e.preventDefault();
@@ -200,15 +200,6 @@
         background: var(--app-grad-dark) !important;
       }
 
-      /* Redundant paints for compositing edge cases */
-      html, body, #root {
-        background: var(--app-grad-light) !important;
-      }
-
-      html.dark, html.dark body, html.dark #root {
-        background: var(--app-grad-dark) !important;
-      }
-
       .bottom-nav-container {
         position: fixed;
         left: 0;
@@ -219,6 +210,14 @@
       }
       .bottom-nav-container * {
         pointer-events: auto;
+      }
+
+      /* Additional redundant background paints to prevent edges */
+      html, body, #root {
+        background: var(--app-grad-light) !important;
+      }
+      html.dark, html.dark body, html.dark #root {
+        background: var(--app-grad-dark) !important;
       }
     </style>
     
