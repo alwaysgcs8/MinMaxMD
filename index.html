@@ -6,7 +6,7 @@
     <title>MinMaxMD</title>
     
     <!-- Increment version to force PWA manifest refresh -->
-    <link rel="manifest" href="/manifest.json?v=31" />
+    <link rel="manifest" href="/manifest.json?v=32" />
     
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
@@ -171,16 +171,23 @@
         background: var(--app-grad-dark) !important;
       }
 
-      /* 4) The ONLY place scrolling is allowed */
+      /* 4) The ONLY place scrolling is allowed - REFINED FOR SMOOTHNESS */
       .scroll-y-only {
         flex: 1;
         min-height: 0;                 /* critical for iOS flex */
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling: touch; /* Momentum scrolling */
 
-        /* IMPORTANT: do not encourage bounce */
-        overscroll-behavior: none;
+        /* Smooth containment */
+        overscroll-behavior-y: contain; 
+        scroll-behavior: smooth;
+
+        /* Hardware acceleration to prevent jitter */
+        transform: translateZ(0);
+        will-change: scroll-position, transform;
+        backface-visibility: hidden;
+        perspective: 1000;
       }
 
       /* 5) Safe-area paint: not transparent */
@@ -212,7 +219,7 @@
         pointer-events: auto;
       }
 
-      /* Additional redundant background paints to prevent edges */
+      /* Redundant paints */
       html, body, #root {
         background: var(--app-grad-light) !important;
       }

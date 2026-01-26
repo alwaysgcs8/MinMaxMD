@@ -37,6 +37,23 @@ const App: React.FC = () => {
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
+  // Helper to determine if a view is a "modal-like" sub-view
+  const isModalView = (view: View) => [
+    View.ADD, View.SETTINGS, View.EDIT, View.EDIT_SUBSCRIPTION, View.BUDGET
+  ].includes(view);
+
+  // Centralized navigation that tracks return paths
+  const navigateTo = (view: View) => {
+    if (isModalView(view)) {
+      // Only update returnView if we're not already in a modal view
+      // This allows simple 1-level stacking
+      if (!isModalView(currentView)) {
+        setReturnView(currentView);
+      }
+    }
+    setCurrentView(view);
+  };
+
   // Swipe back logic
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -44,7 +61,7 @@ const App: React.FC = () => {
   const isEligibleSwipe = useRef(false);
 
   useEffect(() => {
-    const canSwipeBack = [View.EDIT, View.EDIT_SUBSCRIPTION, View.ADD, View.SETTINGS, View.BUDGET].includes(currentView);
+    const canSwipeBack = isModalView(currentView);
     if (!canSwipeBack) {
       setSwipeOffset(0);
       setIsDragging(false);
@@ -117,11 +134,7 @@ const App: React.FC = () => {
   }, [currentView, returnView, isDragging]);
 
   const handleBack = () => {
-    if (currentView === View.EDIT || currentView === View.EDIT_SUBSCRIPTION) {
-        setCurrentView(returnView);
-    } else if (currentView === View.ADD || currentView === View.SETTINGS || currentView === View.BUDGET) {
-        setCurrentView(View.DASHBOARD);
-    }
+    setCurrentView(returnView);
   };
   
   const processRecurringTransactions = (
@@ -233,7 +246,7 @@ const App: React.FC = () => {
         setRecurringTransactions(prev => [...prev, newRecurring]);
     }
     setIsAddingSubscription(false);
-    setCurrentView(View.DASHBOARD);
+    setCurrentView(returnView);
   };
 
   const handleUpdateTransaction = (updatedTx: Transaction) => {
@@ -245,7 +258,7 @@ const App: React.FC = () => {
   const handleUpdateRecurring = (updatedRT: RecurringTransaction) => {
     setRecurringTransactions(prev => prev.map(rt => rt.id === updatedRT.id ? updatedRT : rt));
     setSelectedRecurringTransaction(null);
-    setCurrentView(View.SUBSCRIPTIONS);
+    setCurrentView(returnView);
   };
 
   const handleDeleteTransaction = (id: string) => {
@@ -258,71 +271,69 @@ const App: React.FC = () => {
     setRecurringTransactions(prev => prev.filter(rt => rt.id !== id));
     if (selectedRecurringTransaction?.id === id) {
         setSelectedRecurringTransaction(null);
-        setCurrentView(View.SUBSCRIPTIONS);
+        setCurrentView(returnView);
     }
   };
 
   const handleSelectTransaction = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    setReturnView(currentView);
-    setCurrentView(View.EDIT);
+    navigateTo(View.EDIT);
   };
 
   const handleSelectRecurring = (rt: RecurringTransaction) => {
     setSelectedRecurringTransaction(rt);
-    setReturnView(currentView);
-    setCurrentView(View.EDIT_SUBSCRIPTION);
+    navigateTo(View.EDIT_SUBSCRIPTION);
   };
 
   const navigateToAdd = (forceSub = false) => {
     setIsAddingSubscription(forceSub);
-    setCurrentView(View.ADD);
+    navigateTo(View.ADD);
   };
 
   const renderView = () => {
     switch (currentView) {
       case View.DASHBOARD:
-        return <Dashboard transactions={transactions} onNavigate={setCurrentView} onSelectTransaction={handleSelectTransaction} />;
+        return <Dashboard transactions={transactions} onNavigate={navigateTo} onSelectTransaction={handleSelectTransaction} />;
       case View.ADD:
-        return <AddTransaction categories={categories} onAdd={handleAddTransaction} onCancel={() => { setIsAddingSubscription(false); setCurrentView(View.DASHBOARD); }} forceRecurring={isAddingSubscription} />;
+        return <AddTransaction categories={categories} onAdd={handleAddTransaction} onCancel={handleBack} forceRecurring={isAddingSubscription} />;
       case View.ANALYTICS:
-        return <Analytics transactions={transactions} budgetLimits={budgetLimits} onNavigate={setCurrentView} />;
+        return <Analytics transactions={transactions} budgetLimits={budgetLimits} onNavigate={navigateTo} />;
       case View.HISTORY:
-        return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={setCurrentView} />;
+        return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={navigateTo} />;
       case View.EDIT:
-        if (!selectedTransaction) return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={setCurrentView} />;
+        if (!selectedTransaction) return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={navigateTo} />;
         return <EditTransaction 
             transaction={selectedTransaction} 
             categories={categories}
             onUpdate={handleUpdateTransaction} 
             onDelete={handleDeleteTransaction}
-            onCancel={() => setCurrentView(returnView)} 
+            onCancel={handleBack} 
         />;
       case View.EDIT_SUBSCRIPTION:
-        if (!selectedRecurringTransaction) return <Subscriptions recurringTransactions={recurringTransactions} onDelete={handleDeleteRecurring} onEdit={handleSelectRecurring} onNavigate={setCurrentView} onAddClick={() => navigateToAdd(true)} />;
+        if (!selectedRecurringTransaction) return <Subscriptions recurringTransactions={recurringTransactions} onDelete={handleDeleteRecurring} onEdit={handleSelectRecurring} onNavigate={navigateTo} onAddClick={() => navigateToAdd(true)} />;
         return <EditSubscription 
             recurringTransaction={selectedRecurringTransaction} 
             categories={categories}
             onUpdate={handleUpdateRecurring} 
             onDelete={handleDeleteRecurring}
-            onCancel={() => setCurrentView(View.SUBSCRIPTIONS)} 
+            onCancel={handleBack} 
         />;
       case View.BUDGET:
-        return <Budget overallBudget={overallBudget} categoryLimits={budgetLimits} categories={categories} onSaveOverall={setOverallBudget} onSaveCategoryLimits={setBudgetLimits} onNavigate={setCurrentView} />;
+        return <Budget overallBudget={overallBudget} categoryLimits={budgetLimits} categories={categories} onSaveOverall={setOverallBudget} onSaveCategoryLimits={setBudgetLimits} onNavigate={handleBack} />;
       case View.SUBSCRIPTIONS:
-        return <Subscriptions recurringTransactions={recurringTransactions} onDelete={handleDeleteRecurring} onEdit={handleSelectRecurring} onNavigate={setCurrentView} onAddClick={() => navigateToAdd(true)} />;
+        return <Subscriptions recurringTransactions={recurringTransactions} onDelete={handleDeleteRecurring} onEdit={handleSelectRecurring} onNavigate={navigateTo} onAddClick={() => navigateToAdd(true)} />;
       case View.AI_ADVISOR:
         return <AiAdvisor transactions={transactions} />;
       case View.SETTINGS:
-        return <Settings theme={theme} onThemeChange={setTheme} onBack={() => setCurrentView(View.DASHBOARD)} categories={categories} onUpdateCategories={setCategories} />;
+        return <Settings theme={theme} onThemeChange={setTheme} onBack={handleBack} categories={categories} onUpdateCategories={setCategories} />;
       default:
-        return <Dashboard transactions={transactions} onNavigate={setCurrentView} onSelectTransaction={handleSelectTransaction} />;
+        return <Dashboard transactions={transactions} onNavigate={navigateTo} onSelectTransaction={handleSelectTransaction} />;
     }
   };
 
   if (!isLoaded) return null;
 
-  const hideNav = [View.ADD, View.SETTINGS, View.EDIT, View.EDIT_SUBSCRIPTION, View.BUDGET].includes(currentView);
+  const hideNav = isModalView(currentView);
 
   return (
     <div className="flex flex-col h-full w-full bg-transparent overflow-hidden relative">
@@ -345,7 +356,7 @@ const App: React.FC = () => {
       </main>
       
       {!hideNav && (
-        <BottomNav currentView={currentView} onViewChange={setCurrentView} isVisible={isNavVisible} />
+        <BottomNav currentView={currentView} onViewChange={navigateTo} isVisible={isNavVisible} />
       )}
     </div>
   );

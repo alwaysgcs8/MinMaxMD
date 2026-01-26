@@ -112,16 +112,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
           </h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => onNavigate(View.BUDGET)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
+          <button onClick={() => onNavigate(View.BUDGET)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors active:scale-95">
             <Target size={20} />
           </button>
-          <button onClick={() => onNavigate(View.SETTINGS)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors">
+          <button onClick={() => onNavigate(View.SETTINGS)} className="p-2.5 rounded-xl glass-panel text-slate-500 hover:text-brand-500 transition-colors active:scale-95">
             <SettingsIcon size={20} />
           </button>
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6 no-scrollbar">
         <div className="h-4"></div>
         
         {/* Timeframe Selector */}
@@ -131,7 +131,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf)}
-                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${
                   timeframe === tf ? 'bg-brand-500 text-white shadow-md scale-[1.02]' : 'text-slate-400 dark:text-slate-500'
                 }`}
               >
@@ -143,8 +143,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
 
         {/* Hero Balance Card */}
         <div className="mb-8">
-          <div className="bg-slate-900 dark:bg-slate-800/90 rounded-[2.5rem] p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl border border-white/5 ring-1 ring-white/10">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/20 blur-[60px] rounded-full"></div>
+          <div className="bg-white/70 dark:bg-slate-900/90 rounded-[2.5rem] p-6 sm:p-8 text-slate-900 dark:text-white relative overflow-hidden shadow-2xl border border-white/40 dark:border-white/5 ring-1 ring-white/10 dark:ring-white/5">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/10 dark:bg-brand-500/20 blur-[60px] rounded-full"></div>
             
             <div className="relative z-10 flex flex-col gap-6">
               <div className="flex items-center justify-between">
@@ -152,48 +152,48 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
                   <button 
                     onClick={() => navigatePeriod(-1)}
                     disabled={selectedIndex === 0}
-                    className="p-1.5 bg-white/5 hover:bg-white/10 rounded-full disabled:opacity-20 transition-all active:scale-90"
+                    className="p-1.5 bg-slate-200/50 dark:bg-white/5 hover:bg-slate-300/50 dark:hover:bg-white/10 rounded-full disabled:opacity-20 transition-all active:scale-90"
                   >
                     <ChevronLeft size={16} />
                   </button>
                   <div className="flex flex-col ml-1">
-                    <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.1em] leading-none">{selectedPeriod.label}</p>
-                    <p className="text-slate-600 text-[9px] font-bold uppercase mt-1 tracking-wider">{selectedPeriod.subLabel}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-[0.1em] leading-none">{selectedPeriod.label}</p>
+                    <p className="text-slate-400 dark:text-slate-600 text-[9px] font-bold uppercase mt-1 tracking-wider">{selectedPeriod.subLabel}</p>
                   </div>
                   <button 
                     onClick={() => navigatePeriod(1)}
                     disabled={selectedIndex === periods.length - 1}
-                    className="p-1.5 bg-white/5 hover:bg-white/10 rounded-full disabled:opacity-20 transition-all active:scale-90"
+                    className="p-1.5 bg-slate-200/50 dark:bg-white/5 hover:bg-slate-300/50 dark:hover:bg-white/10 rounded-full disabled:opacity-20 transition-all active:scale-90"
                   >
                     <ChevronRight size={16} />
                   </button>
                 </div>
-                <div className="bg-white/5 px-2.5 py-1 rounded-full border border-white/5 backdrop-blur-sm">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Balance</p>
+                <div className="bg-brand-500/10 dark:bg-white/5 px-2.5 py-1 rounded-full border border-brand-500/10 dark:border-white/5 backdrop-blur-sm">
+                  <p className="text-[10px] font-black text-brand-600 dark:text-slate-400 uppercase tracking-widest">Balance</p>
                 </div>
               </div>
 
               <div className="py-2">
-                <h2 className="text-5xl sm:text-6xl font-black tracking-tighter bg-gradient-to-br from-white via-white to-slate-500 bg-clip-text text-transparent">
+                <h2 className="text-5xl sm:text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">
                   {formatCurrency(stats.balance)}
                 </h2>
               </div>
               
               <div className="flex gap-3 mt-1">
-                <div className="flex-1 bg-white/[0.03] rounded-2xl p-4 border border-white/[0.05] backdrop-blur-sm flex items-center justify-between group">
+                <div className="flex-1 bg-white/40 dark:bg-white/[0.03] rounded-2xl p-4 border border-white/60 dark:border-white/[0.05] backdrop-blur-sm flex items-center justify-between group transition-transform active:scale-[0.97]">
                   <div>
-                    <p className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1 flex items-center gap-1">
+                    <p className="text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1 flex items-center gap-1">
                       <ArrowUpRight size={12} strokeWidth={3} /> In
                     </p>
-                    <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(stats.income)}</p>
+                    <p className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{formatCurrency(stats.income)}</p>
                   </div>
                 </div>
-                <div className="flex-1 bg-white/[0.03] rounded-2xl p-4 border border-white/[0.05] backdrop-blur-sm flex items-center justify-between group">
+                <div className="flex-1 bg-white/40 dark:bg-white/[0.03] rounded-2xl p-4 border border-white/60 dark:border-white/[0.05] backdrop-blur-sm flex items-center justify-between group transition-transform active:scale-[0.97]">
                   <div>
-                    <p className="text-rose-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1 flex items-center gap-1">
+                    <p className="text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1 flex items-center gap-1">
                       <ArrowDownRight size={12} strokeWidth={3} /> Out
                     </p>
-                    <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(stats.expense)}</p>
+                    <p className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{formatCurrency(stats.expense)}</p>
                   </div>
                 </div>
               </div>
@@ -225,10 +225,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
                   <div 
                     key={t.id} 
                     onClick={() => onSelectTransaction(t)}
-                    className="glass-panel p-4 rounded-[1.5rem] flex items-center gap-4 border-white/40 shadow-sm active:scale-[0.98] transition-all hover:bg-white/80 dark:hover:bg-slate-800/80 cursor-pointer"
+                    className="glass-panel p-4 rounded-[1.5rem] flex items-center gap-4 border-white/40 shadow-sm active:scale-[0.98] transition-all duration-200 hover:bg-white/80 dark:hover:bg-slate-800/80 cursor-pointer will-change-transform"
                   >
                     <div 
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg"
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg transition-transform group-active:scale-95"
                       style={{ backgroundColor: getCategoryColor(t.category) }}
                     >
                       <Icon size={20} strokeWidth={2.5} />
