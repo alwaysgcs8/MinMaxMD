@@ -1,10 +1,15 @@
+
 import React, { useRef, useState } from 'react';
 import { Theme } from '../types';
-import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Save, Plus, X, Tag } from 'lucide-react';
+import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Save, Plus, X, Tag, Cloud, LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { exportData, importData } from '../services/storageService';
 import { getCategoryColor } from '../constants';
+import { signInWithGoogle, logout } from '../services/firebase';
+// Fix: Import User as a type to resolve module export error
+import type { User } from 'firebase/auth';
 
 interface SettingsProps {
+  user: User | null;
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
   onBack: () => void;
@@ -12,13 +17,30 @@ interface SettingsProps {
   onUpdateCategories: (categories: string[]) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack, categories, onUpdateCategories }) => {
+export const Settings: React.FC<SettingsProps> = ({ user, theme, onThemeChange, onBack, categories, onUpdateCategories }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newCategory, setNewCategory] = useState('');
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setIsAuthLoading(true);
+    try {
+        await signInWithGoogle();
+    } catch (e) {
+        console.error("Login failed", e);
+    } finally {
+        setIsAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (confirm("Sign out of cloud sync? Data stays on this device.")) {
+        await logout();
+    }
+  };
 
   const handleAddCategory = () => {
-    if (!newCategory.trim()) return;
-    if (categories.includes(newCategory.trim())) return;
+    if (!newCategory.trim() || categories.includes(newCategory.trim())) return;
     onUpdateCategories([...categories, newCategory.trim()]);
     setNewCategory('');
   };
@@ -43,11 +65,9 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
     if (event.target.files && event.target.files.length > 0) {
       fileReader.readAsText(event.target.files[0], "UTF-8");
       fileReader.onload = e => {
-        if (e.target?.result) {
-            if (importData(e.target.result as string)) {
-                alert("Imported! Reloading...");
-                window.location.reload();
-            }
+        if (e.target?.result && importData(e.target.result as string)) {
+            alert("Imported! Reloading...");
+            window.location.reload();
         }
       };
     }
@@ -65,8 +85,53 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6">
+      <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6 no-scrollbar">
         <div className="h-4"></div>
+
+        {/* Cloud Sync Account */}
+        <div className="p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/10 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                <Cloud size={20} className="text-brand-500" /> Cloud Sync
+            </h3>
+            
+            {user ? (
+                <div className="flex items-center gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-2xl border border-white/40 dark:border-white/10 shadow-sm">
+                    <img src={user.photoURL || ''} alt="Profile" className="w-12 h-12 rounded-full border-2 border-brand-500" />
+                    <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-900 dark:text-white truncate">{user.displayName}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                        <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-500 font-black uppercase tracking-widest">
+                            <ShieldCheck size={10} /> Account Linked
+                        </div>
+                    </div>
+                    <button onClick={handleLogout} className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                        <LogOut size={20} />
+                    </button>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Link your Google account to sync your budget, transactions, and categories across all your devices securely.
+                    </p>
+                    <button 
+                        onClick={handleLogin}
+                        disabled={isAuthLoading}
+                        className="w-full flex items-center justify-center gap-3 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm active:scale-95 transition-all group overflow-hidden relative"
+                    >
+                        <div className="absolute inset-0 bg-brand-500/5 translate-y-full group-hover:translate-y-0 transition-transform"></div>
+                        {isAuthLoading ? (
+                            <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent animate-spin rounded-full"></div>
+                        ) : (
+                            <>
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                                <span className="text-slate-700 dark:text-slate-200 font-bold">Sign in with Google</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
+        </div>
 
         {/* Categories */}
         <div className="p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8">
@@ -114,16 +179,16 @@ export const Settings: React.FC<SettingsProps> = ({ theme, onThemeChange, onBack
 
         {/* Data Management */}
         <div className="p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Data Management</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 flex items-center gap-1.5"><Save size={12} className="text-emerald-500" /> Local Storage Active</p>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Backup & Restore</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 flex items-center gap-1.5"><Save size={12} className="text-emerald-500" /> Offline Backups</p>
           <div className="grid grid-cols-2 gap-4">
               <button onClick={handleExport} className="flex flex-col items-center justify-center p-4 bg-white/40 dark:bg-slate-800/50 rounded-2xl border border-white/40 dark:border-white/5 active:scale-95 group">
                   <div className="bg-brand-100 dark:bg-brand-900/30 p-3 rounded-full mb-2 group-hover:scale-110 transition-transform"><Download size={24} className="text-brand-600 dark:text-brand-400" /></div>
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Export</span>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Export JSON</span>
               </button>
               <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center justify-center p-4 bg-white/40 dark:bg-slate-800/50 rounded-2xl border border-white/40 dark:border-white/5 active:scale-95 group">
                   <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mb-2 group-hover:scale-110 transition-transform"><Upload size={24} className="text-purple-600 dark:text-purple-400" /></div>
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Restore</span>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Import JSON</span>
               </button>
               <input type="file" ref={fileInputRef} onChange={handleImport} accept=".json" className="hidden" />
           </div>

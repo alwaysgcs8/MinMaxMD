@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Transaction, RecurrenceFrequency, RecurringTransaction, BudgetLimit, Theme, OverallBudget } from './types';
 import { 
@@ -6,8 +7,12 @@ import {
     getBudgetLimits, saveBudgetLimits,
     getOverallBudget, saveOverallBudget,
     getStoredTheme, saveTheme,
-    getStoredCategories, saveStoredCategories
+    getStoredCategories, saveStoredCategories,
+    pushToCloud, pullFromCloud
 } from './services/storageService';
+import { subscribeToAuthChanges } from './services/firebase';
+// Fix: Import User as a type to resolve module export error
+import type { User } from 'firebase/auth';
 import { Dashboard } from './components/Dashboard';
 import { BottomNav } from './components/BottomNav';
 import { AddTransaction } from './components/AddTransaction';
@@ -30,29 +35,56 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [theme, setTheme] = useState<Theme>('light');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [selectedRecurringTransaction, setSelectedRecurringTransaction] = useState<RecurringTransaction | null>(null);
-  
   const [isAddingSubscription, setIsAddingSubscription] = useState(false);
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Helper to determine if a view is a "modal-like" sub-view
   const isModalView = (view: View) => [
     View.ADD, View.SETTINGS, View.EDIT, View.EDIT_SUBSCRIPTION, View.BUDGET
   ].includes(view);
 
-  // Centralized navigation that tracks return paths
   const navigateTo = (view: View) => {
-    if (isModalView(view)) {
-      // Only update returnView if we're not already in a modal view
-      // This allows simple 1-level stacking
-      if (!isModalView(currentView)) {
-        setReturnView(currentView);
-      }
+    if (isModalView(view) && !isModalView(currentView)) {
+      setReturnView(currentView);
     }
     setCurrentView(view);
   };
+
+  // Auth & Sync Logic
+  useEffect(() => {
+    const unsubscribe = subscribeToAuthChanges(async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Logged in: Try to pull from cloud
+        const cloudData = await pullFromCloud(currentUser.uid);
+        if (cloudData) {
+            setTransactions(cloudData.transactions || []);
+            setRecurringTransactions(cloudData.recurring || []);
+            setBudgetLimits(cloudData.limits || []);
+            setOverallBudget(cloudData.overallBudget || { daily: 0, monthly: 0, yearly: 0 });
+            setCategories(cloudData.categories || []);
+        } else {
+            // First time login: Push local data to initialize cloud
+            await pushToCloud(currentUser.uid);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Sync back to cloud on local changes if user is present
+  useEffect(() => {
+    if (user && isLoaded) {
+      const timer = setTimeout(() => {
+        pushToCloud(user.uid);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [transactions, recurringTransactions, budgetLimits, overallBudget, categories, user, isLoaded]);
 
   // Swipe back logic
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -78,60 +110,35 @@ const App: React.FC = () => {
 
     const handleTouchMove = (e: TouchEvent) => {
         if (!isEligibleSwipe.current) return;
-        
         const currentX = e.touches[0].clientX;
         const currentY = e.touches[0].clientY;
         const deltaX = currentX - touchStart.current.x;
         const deltaY = Math.abs(currentY - touchStart.current.y);
-
-        if (!isDragging && deltaY > deltaX && deltaY > 10) {
-            isEligibleSwipe.current = false;
-            return;
-        }
-
-        if (!isDragging && deltaX > 15 && deltaX > deltaY) {
-            setIsDragging(true);
-        }
-
-        if (isDragging) {
-            if (e.cancelable) e.preventDefault();
-            setSwipeOffset(Math.max(0, deltaX));
-        }
+        if (!isDragging && deltaY > deltaX && deltaY > 10) { isEligibleSwipe.current = false; return; }
+        if (!isDragging && deltaX > 15 && deltaX > deltaY) { setIsDragging(true); }
+        if (isDragging) { if (e.cancelable) e.preventDefault(); setSwipeOffset(Math.max(0, deltaX)); }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-        if (!isDragging) {
-            isEligibleSwipe.current = false;
-            return;
-        }
-
+        if (!isDragging) { isEligibleSwipe.current = false; return; }
         const deltaX = e.changedTouches[0].clientX - touchStart.current.x;
         const threshold = window.innerWidth * 0.25;
-
         if (deltaX > threshold) {
             setSwipeOffset(window.innerWidth);
-            setTimeout(() => {
-                handleBack();
-                setSwipeOffset(0);
-                setIsDragging(false);
-            }, 250);
-        } else {
-            setSwipeOffset(0);
-            setIsDragging(false);
-        }
+            setTimeout(() => { handleBack(); setSwipeOffset(0); setIsDragging(false); }, 250);
+        } else { setSwipeOffset(0); setIsDragging(false); }
         isEligibleSwipe.current = false;
     };
 
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd);
-    
     return () => {
         window.removeEventListener('touchstart', handleTouchStart);
         window.removeEventListener('touchmove', handleTouchMove);
         window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [currentView, returnView, isDragging]);
+  }, [currentView, isDragging]);
 
   const handleBack = () => {
     setCurrentView(returnView);
@@ -174,9 +181,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initApp = async () => {
-        if (navigator.storage && navigator.storage.persist) {
-            try { await navigator.storage.persist(); } catch (e) {}
-        }
         const storedTxs = getStoredTransactions();
         const storedRecurring = getStoredRecurringTransactions();
         const storedLimits = getBudgetLimits();
@@ -302,22 +306,10 @@ const App: React.FC = () => {
         return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={navigateTo} />;
       case View.EDIT:
         if (!selectedTransaction) return <TransactionHistory transactions={transactions} onSelectTransaction={handleSelectTransaction} onNavigate={navigateTo} />;
-        return <EditTransaction 
-            transaction={selectedTransaction} 
-            categories={categories}
-            onUpdate={handleUpdateTransaction} 
-            onDelete={handleDeleteTransaction}
-            onCancel={handleBack} 
-        />;
+        return <EditTransaction transaction={selectedTransaction} categories={categories} onUpdate={handleUpdateTransaction} onDelete={handleDeleteTransaction} onCancel={handleBack} />;
       case View.EDIT_SUBSCRIPTION:
         if (!selectedRecurringTransaction) return <Subscriptions recurringTransactions={recurringTransactions} onDelete={handleDeleteRecurring} onEdit={handleSelectRecurring} onNavigate={navigateTo} onAddClick={() => navigateToAdd(true)} />;
-        return <EditSubscription 
-            recurringTransaction={selectedRecurringTransaction} 
-            categories={categories}
-            onUpdate={handleUpdateRecurring} 
-            onDelete={handleDeleteRecurring}
-            onCancel={handleBack} 
-        />;
+        return <EditSubscription recurringTransaction={selectedRecurringTransaction} categories={categories} onUpdate={handleUpdateRecurring} onDelete={handleDeleteRecurring} onCancel={handleBack} />;
       case View.BUDGET:
         return <Budget overallBudget={overallBudget} categoryLimits={budgetLimits} categories={categories} onSaveOverall={setOverallBudget} onSaveCategoryLimits={setBudgetLimits} onNavigate={handleBack} />;
       case View.SUBSCRIPTIONS:
@@ -325,39 +317,24 @@ const App: React.FC = () => {
       case View.AI_ADVISOR:
         return <AiAdvisor transactions={transactions} />;
       case View.SETTINGS:
-        return <Settings theme={theme} onThemeChange={setTheme} onBack={handleBack} categories={categories} onUpdateCategories={setCategories} />;
+        return <Settings user={user} theme={theme} onThemeChange={setTheme} onBack={handleBack} categories={categories} onUpdateCategories={setCategories} />;
       default:
         return <Dashboard transactions={transactions} onNavigate={navigateTo} onSelectTransaction={handleSelectTransaction} />;
     }
   };
 
   if (!isLoaded) return null;
-
   const hideNav = isModalView(currentView);
 
   return (
     <div className="flex flex-col h-full w-full bg-transparent overflow-hidden relative">
       <main className="flex-1 flex flex-col overflow-hidden w-full h-full relative">
-        {/* Swipe shadow indicator */}
-        {isDragging && swipeOffset > 10 && (
-          <div className="fixed inset-y-0 left-0 w-1 bg-brand-500/30 blur-sm pointer-events-none z-[150]" />
-        )}
-        
-        {/* View container with swipe transform applied here only when dragging to avoid global issues */}
-        <div 
-          className="flex-1 flex flex-col w-full h-full"
-          style={{ 
-            transform: `translateX(${swipeOffset}px)`,
-            transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.1, 0.7, 0.1, 1)'
-          }}
-        >
+        {isDragging && swipeOffset > 10 && <div className="fixed inset-y-0 left-0 w-1 bg-brand-500/30 blur-sm pointer-events-none z-[150]" />}
+        <div className="flex-1 flex flex-col w-full h-full" style={{ transform: `translateX(${swipeOffset}px)`, transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.1, 0.7, 0.1, 1)' }}>
           {renderView()}
         </div>
       </main>
-      
-      {!hideNav && (
-        <BottomNav currentView={currentView} onViewChange={navigateTo} isVisible={isNavVisible} />
-      )}
+      {!hideNav && <BottomNav currentView={currentView} onViewChange={navigateTo} isVisible={isNavVisible} />}
     </div>
   );
 };
