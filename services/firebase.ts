@@ -1,15 +1,17 @@
 
-import { initializeApp, getApp, getApps, FirebaseApp } from 'firebase/app';
+// Fix: Separate value and type imports for Firebase components
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import type { FirebaseApp } from 'firebase/app';
 import { 
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut, 
-  onAuthStateChanged,
-  Auth,
-  User
+  onAuthStateChanged
 } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import type { Auth, User } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import type { Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY,
@@ -25,9 +27,11 @@ let app: FirebaseApp | undefined;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 
-const isConfigValid = !!firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyDummyKeyForUIFlow";
+export const isFirebaseConfigured = !!firebaseConfig.apiKey && 
+                                    firebaseConfig.apiKey !== "" && 
+                                    firebaseConfig.apiKey !== "AIzaSyDummyKeyForUIFlow";
 
-if (isConfigValid) {
+if (isFirebaseConfigured) {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     auth = getAuth(app);
@@ -35,18 +39,15 @@ if (isConfigValid) {
   } catch (e) {
     console.error("Firebase initialization failed:", e);
   }
-} else {
-  console.warn("Firebase configuration is missing or invalid. Cloud sync will be disabled.");
 }
 
 export { auth, db };
 
 export const signInWithGoogle = async (): Promise<User | null> => {
   if (!auth) {
-    throw new Error("Firebase is not initialized. Please check your environment variables.");
+    throw new Error("FIREBASE_NOT_CONFIGURED");
   }
   const provider = new GoogleAuthProvider();
-  // Ensure we always prompt for account selection for better UX in dev
   provider.setCustomParameters({ prompt: 'select_account' });
   
   try {

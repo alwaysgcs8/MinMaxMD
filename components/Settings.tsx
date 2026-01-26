@@ -1,12 +1,12 @@
 
 import React, { useRef, useState } from 'react';
 import { Theme } from '../types';
-import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Save, Plus, X, Tag, Cloud, LogIn, LogOut, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Save, Plus, X, Tag, Cloud, LogIn, LogOut, ShieldCheck, AlertCircle, Info, ExternalLink, Key } from 'lucide-react';
 import { exportData, importData } from '../services/storageService';
 import { getCategoryColor } from '../constants';
-import { signInWithGoogle, logout } from '../services/firebase';
-// Fix: Import User from firebase/auth to resolve module export error
-import { User } from 'firebase/auth';
+import { signInWithGoogle, logout, isFirebaseConfigured } from '../services/firebase';
+// Fix: Import User interface as a type to resolve module export issues
+import type { User } from 'firebase/auth';
 
 interface SettingsProps {
   user: User | null;
@@ -30,12 +30,10 @@ export const Settings: React.FC<SettingsProps> = ({ user, theme, onThemeChange, 
         await signInWithGoogle();
     } catch (e: any) {
         console.error("Login failed", e);
-        if (e.message?.includes("not initialized")) {
-            setAuthError("Configuration Error: Firebase keys are missing in .env");
+        if (e.message === "FIREBASE_NOT_CONFIGURED") {
+            setAuthError("Configuration Error: Firebase keys are missing.");
         } else if (e.code === 'auth/popup-blocked') {
             setAuthError("Popup blocked! Please allow popups for this site.");
-        } else if (e.code === 'auth/unauthorized-domain') {
-            setAuthError("This domain is not authorized in Firebase Console.");
         } else {
             setAuthError(e.message || "Failed to sign in. Please try again.");
         }
@@ -99,21 +97,50 @@ export const Settings: React.FC<SettingsProps> = ({ user, theme, onThemeChange, 
       <main className="flex-1 min-h-0 overflow-y-auto scroll-y-only px-6 no-scrollbar">
         <div className="h-4"></div>
 
-        {/* Cloud Sync Account */}
+        {/* Cloud Sync Section */}
         <div className="p-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/10 shadow-glass mb-8 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/10 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                 <Cloud size={20} className="text-brand-500" /> Cloud Sync
             </h3>
             
-            {authError && (
-                <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <AlertCircle className="text-rose-500 shrink-0 mt-0.5" size={18} />
-                    <p className="text-xs font-medium text-rose-600 dark:text-rose-400 leading-relaxed">{authError}</p>
-                </div>
-            )}
+            {!isFirebaseConfigured ? (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+                        <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs mb-2">
+                            <Info size={14} /> Setup Required
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                            To enable Google Sign-In and Cloud Sync, you must add your Firebase project keys to your environment.
+                        </p>
+                        
+                        <div className="space-y-2 mb-4">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Required Variables:</p>
+                            <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl font-mono text-[9px] text-slate-500 space-y-1 border border-white/20">
+                                <div>VITE_FIREBASE_API_KEY</div>
+                                <div>VITE_FIREBASE_AUTH_DOMAIN</div>
+                                <div>VITE_FIREBASE_PROJECT_ID</div>
+                            </div>
+                        </div>
 
-            {user ? (
+                        <a 
+                            href="https://console.firebase.google.com/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-[10px] font-bold text-brand-600 dark:text-brand-400 hover:underline"
+                        >
+                            Firebase Console <ExternalLink size={10} />
+                        </a>
+                    </div>
+                    <button 
+                        disabled
+                        className="w-full flex items-center justify-center gap-3 py-4 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl opacity-50 cursor-not-allowed"
+                    >
+                        <LogIn size={20} className="text-slate-400" />
+                        <span className="text-slate-400 font-bold">Sign in Unavailable</span>
+                    </button>
+                </div>
+            ) : user ? (
                 <div className="flex items-center gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-2xl border border-white/40 dark:border-white/10 shadow-sm">
                     {user.photoURL ? (
                         <img src={user.photoURL} alt="Profile" className="w-12 h-12 rounded-full border-2 border-brand-500" />
@@ -135,8 +162,14 @@ export const Settings: React.FC<SettingsProps> = ({ user, theme, onThemeChange, 
                 </div>
             ) : (
                 <div className="space-y-4">
+                    {authError && (
+                        <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-start gap-3">
+                            <AlertCircle className="text-rose-500 shrink-0 mt-0.5" size={16} />
+                            <p className="text-xs font-medium text-rose-600 dark:text-rose-400">{authError}</p>
+                        </div>
+                    )}
                     <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Link your Google account to sync your budget, transactions, and categories across all your devices securely.
+                        Link your Google account to sync your budget and transactions across all your devices securely.
                     </p>
                     <button 
                         onClick={handleLogin}
