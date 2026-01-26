@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Transaction, RecurrenceFrequency, RecurringTransaction, BudgetLimit, Theme, OverallBudget } from './types';
 import { 
@@ -326,7 +325,7 @@ const App: React.FC = () => {
   const hideNav = [View.ADD, View.SETTINGS, View.EDIT, View.EDIT_SUBSCRIPTION, View.BUDGET].includes(currentView);
 
   return (
-    <div className="flex flex-col min-h-[100svh] w-full bg-transparent overflow-hidden relative">
+    <div className="flex flex-col h-full w-full bg-transparent overflow-hidden relative">
       <main 
         className="flex-1 flex flex-col overflow-hidden w-full h-full will-change-transform" 
         style={{ 

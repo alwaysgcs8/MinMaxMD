@@ -104,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, onNavigate, 
   };
 
   return (
-    <div className="flex flex-col min-h-[100svh]">
+    <div className="flex flex-col h-full">
       <header className="px-6 pt-safe pb-4 flex justify-between items-center bg-transparent border-b border-white/10 shrink-0">
         <div className="flex items-center py-1.5">
           <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">

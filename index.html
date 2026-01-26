@@ -58,6 +58,12 @@
           document.body.style.backgroundColor = bgColor;
         });
       })();
+
+      // Stop document rubber-band; allow only .scroll-y-only to scroll
+      document.addEventListener('touchmove', (e) => {
+        const scroller = e.target.closest?.('.scroll-y-only');
+        if (!scroller) e.preventDefault();
+      }, { passive: false });
     </script>
 
     <style>
@@ -105,15 +111,16 @@
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
       /* FINAL STICKY FIX OVERRIDES */
-      html, body {
+      html, body, #root {
         margin: 0;
         padding: 0;
         height: 100%;
         width: 100%;
-        overflow: hidden;              /* lock document */
+        overflow: hidden;              /* lock document and root */
         background: var(--app-grad-light) !important;
       }
-      html.dark, html.dark body {
+      
+      html.dark, html.dark body, html.dark #root {
         background: var(--app-grad-dark) !important;
       }
 
@@ -130,15 +137,13 @@
         min-height: 0;                 /* critical */
         display: flex;
         flex-direction: column;
-        overflow: hidden;              /* root does not scroll */
         position: relative;
         z-index: 10;
-        background: transparent;
       }
 
       .scroll-y-only {
         flex: 1;
-        min-height: 0;                 /* critical */
+        min-height: 0;                 /* critical on iOS */
         overflow-y: auto !important;   /* only scroller */
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch;
