@@ -1,50 +1,59 @@
 
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps, FirebaseApp } from 'firebase/app';
 import { 
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  Auth,
+  User
 } from 'firebase/auth';
-// Fix: Use 'import type' for User to resolve module export error
-import type { User } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
-// Note: To use this in production, you must add these variables to your environment.
-// For now, we use a placeholder structure. The app will gracefully fall back to local mode if keys are missing.
 const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyDummyKeyForUIFlow",
-  authDomain: "minmaxmd.firebaseapp.com",
-  projectId: "minmaxmd",
-  storageBucket: "minmaxmd.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456"
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-let app;
-let auth: any = null;
-let db: any = null;
+// Initialize Firebase only if config is present and app doesn't exist
+let app: FirebaseApp | undefined;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
 
-try {
-    app = initializeApp(firebaseConfig);
+const isConfigValid = !!firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyDummyKeyForUIFlow";
+
+if (isConfigValid) {
+  try {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     auth = getAuth(app);
     db = getFirestore(app);
-} catch (e) {
-    console.warn("Firebase initialization failed. Ensure VITE_FIREBASE_API_KEY is set.");
+  } catch (e) {
+    console.error("Firebase initialization failed:", e);
+  }
+} else {
+  console.warn("Firebase configuration is missing or invalid. Cloud sync will be disabled.");
 }
 
 export { auth, db };
 
 export const signInWithGoogle = async (): Promise<User | null> => {
-  if (!auth) return null;
+  if (!auth) {
+    throw new Error("Firebase is not initialized. Please check your environment variables.");
+  }
   const provider = new GoogleAuthProvider();
+  // Ensure we always prompt for account selection for better UX in dev
+  provider.setCustomParameters({ prompt: 'select_account' });
+  
   try {
     const result = await signInWithPopup(auth, provider);
     return result.user;
-  } catch (error) {
-    console.error("Error signing in with Google", error);
+  } catch (error: any) {
+    console.error("Error signing in with Google:", error.code, error.message);
     throw error;
   }
 };
@@ -55,6 +64,9 @@ export const logout = async (): Promise<void> => {
 };
 
 export const subscribeToAuthChanges = (callback: (user: User | null) => void) => {
-  if (!auth) return () => {};
+  if (!auth) {
+    callback(null);
+    return () => {};
+  }
   return onAuthStateChanged(auth, callback);
 };

@@ -11,8 +11,8 @@ import {
     pushToCloud, pullFromCloud
 } from './services/storageService';
 import { subscribeToAuthChanges } from './services/firebase';
-// Fix: Import User as a type to resolve module export error
-import type { User } from 'firebase/auth';
+// Fix: Import User from firebase/auth to resolve module export error
+import { User } from 'firebase/auth';
 import { Dashboard } from './components/Dashboard';
 import { BottomNav } from './components/BottomNav';
 import { AddTransaction } from './components/AddTransaction';

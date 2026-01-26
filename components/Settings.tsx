@@ -1,12 +1,12 @@
 
 import React, { useRef, useState } from 'react';
 import { Theme } from '../types';
-import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Save, Plus, X, Tag, Cloud, LogIn, LogOut, ShieldCheck } from 'lucide-react';
+import { Moon, Sun, Download, Upload, ArrowLeft, Monitor, Save, Plus, X, Tag, Cloud, LogIn, LogOut, ShieldCheck, AlertCircle } from 'lucide-react';
 import { exportData, importData } from '../services/storageService';
 import { getCategoryColor } from '../constants';
 import { signInWithGoogle, logout } from '../services/firebase';
-// Fix: Import User as a type to resolve module export error
-import type { User } from 'firebase/auth';
+// Fix: Import User from firebase/auth to resolve module export error
+import { User } from 'firebase/auth';
 
 interface SettingsProps {
   user: User | null;
@@ -21,13 +21,24 @@ export const Settings: React.FC<SettingsProps> = ({ user, theme, onThemeChange, 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newCategory, setNewCategory] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const handleLogin = async () => {
     setIsAuthLoading(true);
+    setAuthError(null);
     try {
         await signInWithGoogle();
-    } catch (e) {
+    } catch (e: any) {
         console.error("Login failed", e);
+        if (e.message?.includes("not initialized")) {
+            setAuthError("Configuration Error: Firebase keys are missing in .env");
+        } else if (e.code === 'auth/popup-blocked') {
+            setAuthError("Popup blocked! Please allow popups for this site.");
+        } else if (e.code === 'auth/unauthorized-domain') {
+            setAuthError("This domain is not authorized in Firebase Console.");
+        } else {
+            setAuthError(e.message || "Failed to sign in. Please try again.");
+        }
     } finally {
         setIsAuthLoading(false);
     }
@@ -95,11 +106,24 @@ export const Settings: React.FC<SettingsProps> = ({ user, theme, onThemeChange, 
                 <Cloud size={20} className="text-brand-500" /> Cloud Sync
             </h3>
             
+            {authError && (
+                <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertCircle className="text-rose-500 shrink-0 mt-0.5" size={18} />
+                    <p className="text-xs font-medium text-rose-600 dark:text-rose-400 leading-relaxed">{authError}</p>
+                </div>
+            )}
+
             {user ? (
                 <div className="flex items-center gap-4 p-4 bg-white/60 dark:bg-slate-800/60 rounded-2xl border border-white/40 dark:border-white/10 shadow-sm">
-                    <img src={user.photoURL || ''} alt="Profile" className="w-12 h-12 rounded-full border-2 border-brand-500" />
+                    {user.photoURL ? (
+                        <img src={user.photoURL} alt="Profile" className="w-12 h-12 rounded-full border-2 border-brand-500" />
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold text-xl">
+                            {user.displayName?.charAt(0) || user.email?.charAt(0)}
+                        </div>
+                    )}
                     <div className="flex-1 min-w-0">
-                        <p className="font-bold text-slate-900 dark:text-white truncate">{user.displayName}</p>
+                        <p className="font-bold text-slate-900 dark:text-white truncate">{user.displayName || 'User'}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                         <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-500 font-black uppercase tracking-widest">
                             <ShieldCheck size={10} /> Account Linked
@@ -121,7 +145,10 @@ export const Settings: React.FC<SettingsProps> = ({ user, theme, onThemeChange, 
                     >
                         <div className="absolute inset-0 bg-brand-500/5 translate-y-full group-hover:translate-y-0 transition-transform"></div>
                         {isAuthLoading ? (
-                            <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent animate-spin rounded-full"></div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent animate-spin rounded-full"></div>
+                                <span className="text-slate-400 font-bold">Connecting...</span>
+                            </div>
                         ) : (
                             <>
                                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
