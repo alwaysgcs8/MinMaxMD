@@ -86,7 +86,7 @@ export const AddTransaction: React.FC<AddTransactionProps> = ({ categories, onAd
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto px-8 pb-32 space-y-8 no-scrollbar">
+      <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto scroll-y-only px-8 pb-32 space-y-8 no-scrollbar">
         <div className="space-y-4">
             {!forceRecurring && (
                 <div className="glass-panel p-1.5 rounded-[1.8rem] flex relative overflow-hidden">

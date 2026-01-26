@@ -6,7 +6,7 @@
     <title>MinMaxMD</title>
     
     <!-- Increment version to force PWA manifest refresh -->
-    <link rel="manifest" href="/manifest.json?v=29" />
+    <link rel="manifest" href="/manifest.json?v=30" />
     
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
@@ -59,7 +59,16 @@
         });
       })();
 
-      // Stop document rubber-band; allow only .scroll-y-only to scroll
+      // Keep --vh synced to iOS PWA visible viewport
+      function setVH() {
+        document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+      }
+      setVH();
+      window.addEventListener('resize', setVH);
+      window.addEventListener('orientationchange', setVH);
+      window.addEventListener('pageshow', setVH);
+
+      // Prevent document rubber-band; allow only .scroll-y-only to scroll
       document.addEventListener('touchmove', (e) => {
         const scroller = e.target.closest?.('.scroll-y-only');
         if (!scroller) e.preventDefault();
@@ -110,17 +119,20 @@
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-      /* FINAL STICKY FIX OVERRIDES */
-      html, body, #root {
+      /* ===== iOS PWA HARD-LOCK BASELINE ===== */
+
+      /* 1) Lock the document to the screen */
+      html, body {
         margin: 0;
         padding: 0;
-        height: 100%;
         width: 100%;
-        overflow: hidden;              /* lock document and root */
+        height: 100%;
+        overflow: hidden;          /* no document scrolling */
+        position: fixed;           /* prevents rubber-band */
+        inset: 0;                  /* top/right/bottom/left:0 */
         background: var(--app-grad-light) !important;
       }
-      
-      html.dark, html.dark body, html.dark #root {
+      html.dark, html.dark body {
         background: var(--app-grad-dark) !important;
       }
 
@@ -132,53 +144,68 @@
         flex-direction: column;
       }
 
+      /* 2) Root must fill the locked body */
       #root {
-        flex: 1;
-        min-height: 0;                 /* critical */
+        position: relative;
+        flex: none;
+        width: 100%;
+        height: calc(var(--vh, 1vh) * 100);
+        min-height: 0;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
-        position: relative;
         z-index: 10;
+        background: transparent;
       }
 
-      .scroll-y-only {
-        flex: 1;
-        min-height: 0;                 /* critical on iOS */
-        overflow-y: auto !important;   /* only scroller */
-        overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
-      }
-
+      /* 3) Background truly covers everything */
       #app-background {
         position: fixed;
-        left: 0; 
-        right: 0; 
-        top: 0; 
-        bottom: 0; 
+        inset: 0;
         z-index: 0;
         pointer-events: none;
         background: var(--app-grad-light) !important;
         transform: translateZ(0);
       }
-
       html.dark #app-background {
         background: var(--app-grad-dark) !important;
       }
 
+      /* 4) The ONLY place scrolling is allowed */
+      .scroll-y-only {
+        flex: 1;
+        min-height: 0;                 /* critical for iOS flex */
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
+
+        /* IMPORTANT: do not encourage bounce */
+        overscroll-behavior: none;
+      }
+
+      /* 5) Safe-area paint: not transparent */
       #ios-safearea-filler {
         position: fixed;
         left: 0;
         right: 0;
         bottom: 0;
         height: env(safe-area-inset-bottom);
-        pointer-events: none;
         z-index: 999999;
+        pointer-events: none;
         background: var(--app-grad-light) !important;
         -webkit-backdrop-filter: blur(20px);
         backdrop-filter: blur(20px);
       }
-
       html.dark #ios-safearea-filler {
+        background: var(--app-grad-dark) !important;
+      }
+
+      /* Redundant paints for compositing edge cases */
+      html, body, #root {
+        background: var(--app-grad-light) !important;
+      }
+
+      html.dark, html.dark body, html.dark #root {
         background: var(--app-grad-dark) !important;
       }
 
